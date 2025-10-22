@@ -1,13 +1,13 @@
-import { View, Text } from 'react-native'
-import React from 'react'
+import React from "react";
+import { Text } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const ForgotPassword = () => {
   return (
-    <View>
+    <SafeAreaView style={{ flex: 1 }}>
       <Text>ForgotPassword</Text>
-      
-    </View>
-  )
-}
+    </SafeAreaView>
+  );
+};
 
-export default ForgotPassword
+export default ForgotPassword;

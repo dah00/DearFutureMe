@@ -1,14 +1,27 @@
 import { Stack } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { StatusBar } from "react-native";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import "./global.css";
 
 export default function RootLayout() {
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <SafeAreaProvider>
+      <StatusBar hidden={true} />
       <Stack>
         <Stack.Screen name="index" options={{ headerShown: false }} />
-        <Stack.Screen name="Login" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="onboarding/Login"
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="onboarding/SignUp"
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="onboarding/ForgotPassword"
+          options={{ headerShown: false }}
+        />
       </Stack>
-    </SafeAreaView>
+    </SafeAreaProvider>
   );
 }
