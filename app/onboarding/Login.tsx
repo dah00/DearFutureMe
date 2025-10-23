@@ -2,7 +2,14 @@ import Button from "@/components/Button";
 import TextField from "@/components/TextField";
 import { Link } from "expo-router";
 import React, { useState } from "react";
-import { Text, View } from "react-native";
+import {
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  Text,
+  TouchableWithoutFeedback,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const Login = () => {
@@ -14,48 +21,58 @@ const Login = () => {
   };
 
   return (
-    <SafeAreaView className="flex-1 justify-center px-8 gap-12">
-      {/*Header*/}
-      <View className="">
-        <Text className="text-5xl font-medium text-center">Login</Text>
-      </View>
-
-      {/* Text Fields */}
-      <View className=" gap-3">
-        <TextField
-          placeholder="Email Address"
-          autoCapitalize="none"
-          autoComplete="email"
-        />
-        <TextField
-          placeholder="Password"
-          autoCapitalize="none"
-          autoComplete="password"
-          secureTextEntry={true}
-        />
-        <Link
-          href="/onboarding/ForgotPassword"
-          className="text-accent text-right underline"
+    <SafeAreaView className="flex-1">
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          className="flex-1 justify-center px-6 gap-12"
         >
-          Forgot Password
-        </Link>
-      </View>
+          {/*Header*/}
+          <View className="">
+            <Text className="text-5xl font-medium text-center">Login</Text>
+          </View>
 
-      {/* Terms and Conditions */}
-      <View className="">
-        <Text>
-          Don't have an account,{" "}
-          <Link href="/onboarding/SignUp" className="text-accent underline">
-            sign up
-          </Link>{" "}
-          now
-        </Text>
-      </View>
+          {/* Text Fields */}
+          <View className="gap-3">
+            <TextField
+              placeholder="Email Address"
+              autoCapitalize="none"
+              autoComplete="email"
+              keyboardType="email-address"
+            />
+            <TextField
+              placeholder="Password"
+              autoCapitalize="none"
+              autoComplete="password"
+              secureTextEntry={true}
+            />
+            <View className="flex items-end">
+              <Link
+                href="/onboarding/ForgotPassword"
+                className="text-accent underline"
+              >
+                Forgot Password
+              </Link>
+            </View>
+          </View>
 
-      {/* Sign In button */}
-      <View className="items-center">
-        <Button text="Sign In" onPress={handleLogIn} size="lg" />
-      </View>
+          {/* Terms and Conditions */}
+          <View className="">
+            <Text>
+              Don't have an account,{" "}
+              <Link href="/onboarding/SignUp" className="text-accent underline">
+                sign up
+              </Link>{" "}
+              now
+            </Text>
+          </View>
+
+          {/* Sign In button */}
+          <View className="items-center">
+            <Button text="Sign In" onPress={handleLogIn} size="lg" />
+          </View>
+        </KeyboardAvoidingView>
+      </TouchableWithoutFeedback>
     </SafeAreaView>
   );
 };

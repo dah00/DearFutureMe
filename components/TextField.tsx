@@ -33,7 +33,7 @@ const TextField = ({
         secureTextEntry={secureTextEntry && !showPassword}
         autoCapitalize={autoCapitalize}
         autoComplete={autoComplete}
-        className="bg-gray-200 rounded-lg px-4 py-4 text-base pr-12"
+        className="bg-gray-200 rounded-lg px-4 py-5 pr-12 text"
       />
       {secureTextEntry && (
         <TouchableOpacity
@@ -42,7 +42,7 @@ const TextField = ({
           className="absolute right-4 top-4"
         >
           <Ionicons
-            name={showPassword ? "eye-off" : "eye"}
+            name={showPassword ? "eye" : "eye-off"}
             size={20}
             color="#6B7280"
           />
