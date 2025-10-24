@@ -9,6 +9,8 @@ interface TextFieldProps {
   autoCapitalize?: "none" | "sentences" | "words" | "characters";
   autoComplete?: "password" | "email";
   secureTextEntry?: boolean;
+  value?: string;
+  onChangeText?: (text: string) => void;
 }
 
 const TextField = ({
@@ -18,16 +20,22 @@ const TextField = ({
   secureTextEntry = false,
   autoCapitalize,
   autoComplete,
+  value,
+  onChangeText,
 }: TextFieldProps) => {
-  const [value, setValue] = useState<string>("");
+  const [internalValue, setInternalValue] = useState<string>("");
   const [showPassword, setShowPassword] = useState<boolean>(false);
+
+  // Use controlled value if provided, otherwise use internal state
+  const currentValue = value !== undefined ? value : internalValue;
+  const handleChangeText = onChangeText || setInternalValue;
 
   return (
     <View>
       <TextInput
         placeholder={placeholder}
-        value={value}
-        onChangeText={setValue}
+        value={currentValue}
+        onChangeText={handleChangeText}
         placeholderTextColor="#9CA3AF"
         keyboardType={keyboardType}
         secureTextEntry={secureTextEntry && !showPassword}

@@ -1,8 +1,10 @@
 import Button from "@/components/Button";
 import TextField from "@/components/TextField";
-import { Link } from "expo-router";
+import { AuthService } from "@/lib/auth";
+import { Link, router } from "expo-router";
 import React, { useState } from "react";
 import {
+  Alert,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
@@ -15,9 +17,31 @@ import { SafeAreaView } from "react-native-safe-area-context";
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogIn = () => {
-    // TODO: Implement
+  const handleLogIn = async () => {
+    if (!email || !password) {
+      Alert.alert("Error", "Please fill in all fields");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const result = await AuthService.signIn({ email, password });
+
+      if (result.success) {
+        // Success! Navigate to main app
+        Alert.alert("Success", "Welcome back!");
+        router.replace("/"); 
+      } else {
+        Alert.alert("Login Failed", result.error || "Something went wrong");
+      }
+    } catch (error) {
+      Alert.alert("Error", "An unexpected error occurred");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -36,12 +60,16 @@ const Login = () => {
           <View className="gap-3">
             <TextField
               placeholder="Email Address"
+              value={email}
+              onChangeText={setEmail}
               autoCapitalize="none"
               autoComplete="email"
               keyboardType="email-address"
             />
             <TextField
               placeholder="Password"
+              value={password}
+              onChangeText={setPassword}
               autoCapitalize="none"
               autoComplete="password"
               secureTextEntry={true}
@@ -69,7 +97,12 @@ const Login = () => {
 
           {/* Sign In button */}
           <View className="items-center">
-            <Button text="Sign In" onPress={handleLogIn} size="lg" />
+            <Button
+              text={isLoading ? "Signing In..." : "Sign In"}
+              onPress={handleLogIn}
+              size="lg"
+              disabled={isLoading}
+            />
           </View>
         </KeyboardAvoidingView>
       </TouchableWithoutFeedback>
