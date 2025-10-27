@@ -6,7 +6,7 @@ import { Image, Text, View } from "react-native";
 
 const TabIcon = ({ focused, icon, title }: any) => {
   return (
-    <View style={{ alignItems: "center", gap: 4 }}>
+    <View style={{ alignItems: "center", justifyContent: 'center', gap: 4 }}>
       <Image
         source={icon}
         style={{
@@ -47,7 +47,7 @@ const _Layout = () => {
       }}
     >
       <Tabs.Screen
-        name="home"
+        name="Home"
         options={{
           title: "Home",
           headerShown: false,
@@ -57,7 +57,7 @@ const _Layout = () => {
         }}
       />
       <Tabs.Screen
-        name="records"
+        name="Records"
         options={{
           title: "Records",
           headerShown: false,
@@ -67,7 +67,7 @@ const _Layout = () => {
         }}
       />
       <Tabs.Screen
-        name="profile"
+        name="Profile"
         options={{
           title: "Profile",
           headerShown: false,
