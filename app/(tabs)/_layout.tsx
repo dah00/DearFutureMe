@@ -6,19 +6,43 @@ import { Image, Text, View } from "react-native";
 
 const TabIcon = ({ focused, icon, title }: any) => {
   return (
-    <View style={{ alignItems: "center", justifyContent: 'center', gap: 4 }}>
+    <View
+      style={{
+        flex: 1,
+        width: "100%",
+        height: "100%",
+        backgroundColor: "purple",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 4,
+      }}
+    >
       <Image
         source={icon}
         style={{
           width: 24,
           height: 24,
-          tintColor: focused ? "#FFFFFF" : "#A8B5DB",
+          tintColor: focused ? "#FFFFFF" : "#9ca3af",
         }}
       />
-      <Text className={`text-xs ${focused ? "text-white" : "text-[#A8B5DB]"}`}>
+      <Text
+        style={{
+          fontSize: 12,
+          color: focused ? "#FFFFFF" : "#A8B5DB",
+        }}
+      >
         {title}
       </Text>
-      {focused && <View className="w-4 h-1 bg-accent rounded-full" />}
+      {focused && (
+        <View
+          style={{
+            width: 32,
+            height: 4,
+            backgroundColor: "#7C3AED",
+            borderRadius: 2,
+          }}
+        />
+      )}
     </View>
   );
 };
@@ -29,20 +53,27 @@ const _Layout = () => {
       screenOptions={{
         tabBarShowLabel: false,
         tabBarItemStyle: {
+          flex: 1,
+          height: "100%",
+          backgroundColor: "red",
+          padding: 0,
+          margin: 0,
+        },
+        tabBarIconStyle: {
           width: "100%",
           height: "100%",
-          justifyContent: "center",
-          alignItems: "center",
         },
         tabBarStyle: {
           backgroundColor: colors.textPrimary,
           width: "90%",
           height: 80,
-          //   position: "absolute",
           bottom: 19,
           alignSelf: "center",
           borderRadius: 25,
-          overflow: "hidden",
+          paddingHorizontal: 0,
+          paddingTop: 0,
+          paddingBottom: 0,
+          paddingVertical: 0,
         },
       }}
     >
