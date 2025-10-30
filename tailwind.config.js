@@ -8,6 +8,12 @@ module.exports = {
   theme: {
     extend: {
       colors: colors,
+      fontFamily: {
+        // Default sans family used by NativeWind base styles
+        sans: ["InstrumentSans"],
+        instrument: ["InstrumentSans"],
+        "instrument-italic": ["InstrumentSans-Italic"],
+      },
     },
   },
   plugins: [],

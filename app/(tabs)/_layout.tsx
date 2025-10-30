@@ -11,7 +11,7 @@ const TabIcon = ({ focused, icon, title }: any) => {
         flex: 1,
         width: "100%",
         height: "100%",
-        backgroundColor: "purple",
+        // backgroundColor: "purple",
         alignItems: "center",
         justifyContent: "center",
         gap: 4,
@@ -36,7 +36,7 @@ const TabIcon = ({ focused, icon, title }: any) => {
       {focused && (
         <View
           style={{
-            width: 32,
+            width: 50,
             height: 4,
             backgroundColor: "#7C3AED",
             borderRadius: 2,
@@ -52,28 +52,25 @@ const _Layout = () => {
     <Tabs
       screenOptions={{
         tabBarShowLabel: false,
+        headerShown: false,
         tabBarItemStyle: {
           flex: 1,
           height: "100%",
-          backgroundColor: "red",
-          padding: 0,
-          margin: 0,
         },
         tabBarIconStyle: {
           width: "100%",
           height: "100%",
         },
         tabBarStyle: {
+          // position: "absolute",
           backgroundColor: colors.textPrimary,
           width: "90%",
           height: 80,
           bottom: 19,
           alignSelf: "center",
           borderRadius: 25,
-          paddingHorizontal: 0,
-          paddingTop: 0,
+          borderBlockColor: colors.textSecondary,
           paddingBottom: 0,
-          paddingVertical: 0,
         },
       }}
     >

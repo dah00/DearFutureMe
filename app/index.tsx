@@ -1,3 +1,4 @@
+import { colors } from "@/constants/colors";
 import { useAuth } from "@/lib/AuthContext";
 import { Image } from "expo-image";
 import { router } from "expo-router";
@@ -26,11 +27,11 @@ export default function Index() {
       {/** LOGO */}
       <Image
         source={require("@/assets/images/react-logo.png")}
-        style={{ width: 100, height: 100 }}
+        style={{ width: 100, height: 100, tintColor: colors.accent }}
         contentFit="contain"
       />
       {/** Header */}
-      <Text className="text-6xl text-accent">Dear Future Me</Text>
+      <Text className="font-instrument text-4xl text-accent">Dear Future Me</Text>
       <Text className="text-lg">
         Record your thoughts, dreams, and ambitions. We'll send them back to you
         at the perfect moment to inspire and remind you of what matters to you.
@@ -42,7 +43,7 @@ export default function Index() {
       />
       {/** Button */}
       <Pressable
-        className="bg-button px-6 py-4 rounded-lg mt-4"
+        className="bg-accent px-6 py-4 rounded-lg mt-4"
         onPress={() => router.push("/Home")}
       >
         <Text className="text-white text-lg font-semibold text-center">

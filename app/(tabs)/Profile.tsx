@@ -3,7 +3,7 @@ import { Text, View } from "react-native";
 
 const Profile = () => {
   return (
-    <View>
+    <View className="flex-1 bg-accent">
       <Text>Profile</Text>
     </View>
   );
