@@ -31,8 +31,10 @@ export default function Index() {
         contentFit="contain"
       />
       {/** Header */}
-      <Text className="font-instrument text-4xl text-accent">Dear Future Me</Text>
-      <Text className="text-lg">
+      <Text className="font-instrument text-4xl text-accent">
+        Dear Future Me
+      </Text>
+      <Text className=" text-lg">
         Record your thoughts, dreams, and ambitions. We'll send them back to you
         at the perfect moment to inspire and remind you of what matters to you.
       </Text>

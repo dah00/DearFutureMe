@@ -22,7 +22,7 @@ const TabIcon = ({ focused, icon, title }: any) => {
         style={{
           width: 24,
           height: 24,
-          tintColor: focused ? "#FFFFFF" : "#9ca3af",
+          tintColor: focused ? colors.background : colors.button,
         }}
       />
       <Text
@@ -100,7 +100,7 @@ const _Layout = () => {
           title: "Profile",
           headerShown: false,
           tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} icon={icons.profile} title="Profile" />
+            <TabIcon focused={focused} icon={icons.user} title="Profile" />
           ),
         }}
       />

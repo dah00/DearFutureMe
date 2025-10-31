@@ -1,5 +1,8 @@
+import { colors } from "@/constants/colors";
+import { icons } from "@/constants/icons";
 import React from "react";
 import {
+  Image,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
@@ -23,9 +26,10 @@ const Home = () => {
             <Text className="font-instrument text-2xl">
               Hello, Rio/First Name/
             </Text>
-            <View>
-              <Text>Profile Icon</Text>
-            </View>
+            <Image
+              source={icons.profile}
+              style={{ width: 26, height: 26, tintColor: colors.button }}
+            />
           </View>
           {/** Upcoming Messages */}
           <View className="mb-10">
@@ -33,14 +37,14 @@ const Home = () => {
               <Text className="text-2xl">Upcoming Messages</Text>
               <Text>Calendar Icon</Text>
             </View>
-            <View>
-              <View>
-                <Text>Upcomoing Message 1</Text>
-                <Text>on MM/DD/YYYY</Text>
+            <View className="">
+              <View className="flex-row justify-between">
+                <Text>Physical Goal</Text>
+                <Text>on 12/15/2025</Text>
               </View>
-              <View>
-                <Text>Upcomoing Message 1</Text>
-                <Text>on MM/DD/YYYY</Text>
+              <View className="flex-row justify-between">
+                <Text>Owning my morning</Text>
+                <Text>on 12/31/2025</Text>
               </View>
             </View>
           </View>
