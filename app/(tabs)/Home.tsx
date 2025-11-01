@@ -1,3 +1,4 @@
+import MessageList from "@/components/Home/MessageList";
 import { colors } from "@/constants/colors";
 import { icons } from "@/constants/icons";
 import React from "react";
@@ -14,7 +15,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 const Home = () => {
   return (
-    <SafeAreaView className="flex-1 px-6 py-8 bg-red-700">
+    <SafeAreaView className="flex-1 px-6 py-8">
       {/* Back Button */}
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <KeyboardAvoidingView
@@ -24,7 +25,7 @@ const Home = () => {
           {/** Header */}
           <View className="flex-row justify-between mb-10">
             <Text className="font-instrument text-2xl">
-              Hello, Rio/First Name/
+              Hello, <Text className="color-accent"> Rio</Text>
             </Text>
             <Image
               source={icons.profile}
@@ -33,20 +34,11 @@ const Home = () => {
           </View>
           {/** Upcoming Messages */}
           <View className="mb-10">
-            <View className="flex-row justify-between">
+            <View className="flex-row justify-between ">
               <Text className="text-2xl">Upcoming Messages</Text>
               <Text>Calendar Icon</Text>
             </View>
-            <View className="">
-              <View className="flex-row justify-between">
-                <Text>Physical Goal</Text>
-                <Text>on 12/15/2025</Text>
-              </View>
-              <View className="flex-row justify-between">
-                <Text>Owning my morning</Text>
-                <Text>on 12/31/2025</Text>
-              </View>
-            </View>
+            <MessageList /> // TODO: Pass the list of messages to props
           </View>
           <View>
             {/** Voice Recording */}
