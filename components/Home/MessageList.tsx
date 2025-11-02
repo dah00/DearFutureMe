@@ -13,15 +13,27 @@ const messages = [
 ];
 
 const MessageList = () => {
+  if (messages.length < 1) {
+    return (
+      <View>
+        <Text> No upcoming messages</Text>
+      </View>
+    );
+  }
   return (
     <FlatList
       data={messages}
       renderItem={({ item }) => (
-        <View className="rounded-lg p-2 bg-border gap-2 mt-2">
+        <View className="rounded-lg p-4">
           <View className="flex-row justify-between">
             <View className="flex-row items-center">
               <View className="bg-blue-400 rounded-full p-2">
-                <Image source={icons.comment} className="w-8 h-8" />
+                <Image
+                  source={
+                    item.messageType == "text" ? icons.comment : icons.voice
+                  }
+                  className="w-6 h-6"
+                />
               </View>
               <Text> {item.title} </Text>
             </View>
@@ -30,6 +42,9 @@ const MessageList = () => {
         </View>
       )}
       keyExtractor={(item) => item.id.toString()}
+      ItemSeparatorComponent={() => (
+        <View className="bg-secondary h-1 w-full" />
+      )}
     />
   );
 };
