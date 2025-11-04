@@ -20,10 +20,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 /**
  * TODO:
  * - disable the the button until agree to terms and conditions is checked
- * - Remove permanent caps icon above eye icon of the password text field 
- * - Show an error message "you have to agree with the terms and condition" 
- * when Sign up button is pressed, but checkbox is not checked 
- * 
+ * - Remove permanent caps icon above eye icon of the password text field
+ * - Show an error message "you have to agree with the terms and condition"
+ * when Sign up button is pressed, but checkbox is not checked
+ *
  *
  */
 
@@ -57,7 +57,7 @@ const SignUp = () => {
 
       if (result.success) {
         Alert.alert("Success", "Account created successfully!");
-        router.replace("/"); 
+        router.replace("/");
       } else {
         Alert.alert("Sign Up Failed", result.error || "Something went wrong");
       }

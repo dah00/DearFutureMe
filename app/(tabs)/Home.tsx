@@ -56,7 +56,7 @@ const Home = () => {
               <Pressable
                 className="w-32 h-32 mt-10 rounded-full bg-primary items-center justify-center self-center"
                 onPress={() => {
-                  router.push("/Recording");
+                  router.push("/recording");
                 }}
               >
                 <Image source={icons.voice} className="w-8 h-8" />

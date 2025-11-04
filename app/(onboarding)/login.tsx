@@ -33,7 +33,7 @@ const Login = () => {
       if (result.success) {
         // Success! Navigate to main app
         Alert.alert("Success", "Welcome back!");
-        router.replace("/"); 
+        router.replace("/");
       } else {
         Alert.alert("Login Failed", result.error || "Something went wrong");
       }
@@ -75,10 +75,7 @@ const Login = () => {
               secureTextEntry={true}
             />
             <View className="flex items-end">
-              <Link
-                href="/onboarding/ForgotPassword"
-                className="text-accent underline"
-              >
+              <Link href="/forgot-password" className="text-accent underline">
                 Forgot Password
               </Link>
             </View>
@@ -88,7 +85,7 @@ const Login = () => {
           <View className="">
             <Text>
               Don't have an account,{" "}
-              <Link href="/onboarding/SignUp" className="text-accent underline">
+              <Link href="/sign-up" className="text-accent underline">
                 sign up
               </Link>{" "}
               now

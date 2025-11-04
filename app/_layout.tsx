@@ -67,18 +67,7 @@ export default function RootLayout() {
         <StatusBar hidden={true} />
         <Stack>
           <Stack.Screen name="index" options={{ headerShown: false }} />
-          <Stack.Screen
-            name="onboarding/Login"
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="onboarding/SignUp"
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="onboarding/ForgotPassword"
-            options={{ headerShown: false }}
-          />
+          <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="(screens)" options={{ headerShown: false }} />
         </Stack>
