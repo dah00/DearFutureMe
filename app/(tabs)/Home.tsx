@@ -29,10 +29,12 @@ const Home = () => {
             <Text className="font-instrument text-3xl">
               Hello, <Text className="color-accent"> Rio</Text>
             </Text>
-            <Image
-              source={icons.profile}
-              style={{ width: 26, height: 26, tintColor: colors.button }}
-            />
+            <Pressable onPress={() => router.push("/Profile")}>
+              <Image
+                source={icons.profile}
+                style={{ width: 26, height: 26, tintColor: colors.button }}
+              />
+            </Pressable>
           </View>
           {/* * Upcoming Messages */}
           <View className="mb-10">

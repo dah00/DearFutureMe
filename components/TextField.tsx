@@ -41,7 +41,7 @@ const TextField = ({
         secureTextEntry={secureTextEntry && !showPassword}
         autoCapitalize={autoCapitalize}
         autoComplete={autoComplete}
-        className="bg-gray-200 rounded-lg px-4 py-5 pr-12 text"
+        className="bg-gray-200 rounded-lg px-4 py-5 pr-12"
       />
       {secureTextEntry && (
         <TouchableOpacity
