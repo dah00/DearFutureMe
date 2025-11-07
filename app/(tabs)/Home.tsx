@@ -1,8 +1,9 @@
 import MessageList from "@/components/Home/MessageList";
 import { colors } from "@/constants/colors";
 import { icons } from "@/constants/icons";
+import { getHelloMessage } from "@/lib/api";
 import { router } from "expo-router";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Image,
   Keyboard,
@@ -16,6 +17,27 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const Home = () => {
+  const [backendMessage, setBackendMessage] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    const fetchHelloMessage = async () => {
+      setIsLoading(true);
+
+      const response = await getHelloMessage();
+
+      if (response.success && response.data) {
+        setBackendMessage(response.data.message);
+      } else {
+        setBackendMessage(`Error: ${response.error || "Unknown error"}`);
+      }
+
+      setIsLoading(false);
+    };
+
+    fetchHelloMessage();
+  }, []);
+
   return (
     <SafeAreaView className="flex-1 px-6 py-8 bg-secondary">
       {/* Back Button */}
@@ -36,6 +58,18 @@ const Home = () => {
               />
             </Pressable>
           </View>
+
+          {/* Backend Connection Test - ADD THIS SECTION */}
+          <View className="mb-4 p-3 bg-primary rounded-lg">
+            <Text className="text-sm font-semibold mb-1">Backend Status:</Text>
+            {isLoading ? (
+              <Text className="text-xs">Connecting to backend...</Text>
+            ) : (
+              <Text className="text-xs">{backendMessage}</Text>
+            )}
+          </View>
+          {/* END OF ADDED SECTION */}
+
           {/* * Upcoming Messages */}
           <View className="mb-10">
             <View className="flex-row justify-between">
