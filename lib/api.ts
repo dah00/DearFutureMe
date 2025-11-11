@@ -8,6 +8,20 @@ export interface ApiResponse<T> {
   error?: string;
 }
 
+export interface MessagePayload {
+  title: string;
+  content?: string;
+  message_type?: "text" | "voice";
+  scheduled_date?: string; // ISO string
+}
+
+export interface MessageResponse extends MessagePayload {
+  id: number;
+  user_id: number;
+  created_at: string;
+  updated_at?: string | null;
+}
+
 async function apiRequest<T>(
   endpoint: string,
   options: RequestInit = {}
@@ -47,6 +61,39 @@ async function apiRequest<T>(
           : "Network error: Could not connect to server",
     };
   }
+}
+
+// List messages
+export async function getMessages(): Promise<ApiResponse<MessageResponse[]>> {
+  return apiRequest<MessageResponse[]>("/api/messages");
+}
+
+// Create message
+export async function createMessage(
+  payload: MessagePayload
+): Promise<ApiResponse<MessageResponse>> {
+  return apiRequest<MessageResponse>("/api/messages", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+// Update message
+export async function updateMessage(
+  id: number,
+  payload: Partial<MessagePayload>
+): Promise<ApiResponse<MessageResponse>> {
+  return apiRequest<MessageResponse>(`/api/messages/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(payload),
+  });
+}
+
+// Delete message
+export async function deleteMessage(id: number): Promise<ApiResponse<void>> {
+  return apiRequest<void>(`/api/messages/${id}`, {
+    method: "DELETE",
+  });
 }
 
 export async function getHelloMessage(): Promise<
