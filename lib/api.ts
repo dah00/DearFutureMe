@@ -96,8 +96,4 @@ export async function deleteMessage(id: number): Promise<ApiResponse<void>> {
   });
 }
 
-export async function getHelloMessage(): Promise<
-  ApiResponse<{ message: string }>
-> {
-  return apiRequest<{ message: string }>("/api/hello");
-}
+

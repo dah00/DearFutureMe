@@ -1,10 +1,11 @@
 import MessageList from "@/components/Home/MessageList";
 import { colors } from "@/constants/colors";
 import { icons } from "@/constants/icons";
-import { getHelloMessage } from "@/lib/api";
+import { useMessages } from "@/lib/hooks/useMessages";
 import { router } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
+  Alert,
   Image,
   Keyboard,
   KeyboardAvoidingView,
@@ -18,25 +19,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 const Home = () => {
   const [backendMessage, setBackendMessage] = useState<string>("");
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-
-  useEffect(() => {
-    const fetchHelloMessage = async () => {
-      setIsLoading(true);
-
-      const response = await getHelloMessage();
-
-      if (response.success && response.data) {
-        setBackendMessage(response.data.message);
-      } else {
-        setBackendMessage(`Error: ${response.error || "Unknown error"}`);
-      }
-
-      setIsLoading(false);
-    };
-
-    fetchHelloMessage();
-  }, []);
+  const { messages, isLoading, error, reload, createMessage } = useMessages();
 
   return (
     <SafeAreaView className="flex-1 px-6 py-8 bg-secondary">
@@ -72,15 +55,28 @@ const Home = () => {
 
           {/* * Upcoming Messages */}
           <View className="mb-10">
-            <View className="flex-row justify-between">
+            <View className="flex-row justify-between items-center">
               <Text className="text-2xl">Upcoming Messages</Text>
-              <Text>Calendar Icon</Text>
+              <Pressable onPress={reload}>
+                <Text className="text-accent text-sm">Refresh</Text>
+              </Pressable>
             </View>
-            {/* TODO: Pass the list of messages as prop of MessageList */}
+
             <View className="bg-primary rounded-lg mt-4">
-              <MessageList />
+              {isLoading ? (
+                <View className="p-4">
+                  <Text>Loading messages…</Text>
+                </View>
+              ) : error ? (
+                <View className="p-4">
+                  <Text className="text-red-500">{error}</Text>
+                </View>
+              ) : (
+                <MessageList messages={messages} />
+              )}
             </View>
           </View>
+
           <View>
             {/** Voice Recording */}
             <View>
@@ -100,7 +96,29 @@ const Home = () => {
               </Pressable>
             </View>
             {/** Text Recording */}
-            <View></View>
+            <View className="mt-6">
+              <Pressable
+                className="bg-accent py-2 px-4 rounded-lg mt-4"
+                onPress={async () => {
+                  const result = await createMessage({
+                    title: "Sample message",
+                    content: "Created from app",
+                    message_type: "text",
+                    scheduled_date: new Date().toISOString(),
+                  });
+                  if (!result.success) {
+                    Alert.alert(
+                      "Error",
+                      result.error ?? "Could not create message"
+                    );
+                  }
+                }}
+              >
+                <Text className="text-white text-center">
+                  Add Sample Message
+                </Text>
+              </Pressable>
+            </View>
           </View>
         </KeyboardAvoidingView>
       </TouchableWithoutFeedback>

@@ -1,0 +1,47 @@
+### Variables (optional - set at top of file)
+@baseUrl = http://localhost:8000
+
+### Get all messages
+GET {{baseUrl}}/api/messages
+
+###
+
+### Get single message
+# GET {{baseUrl}}/api/messages/1
+
+###
+
+### Create message
+# POST {{baseUrl}}/api/messages
+# Content-Type: application/json
+
+# {
+#   "title": "Read 1 Book",
+#   "content": "Finish read X by the end of the month",
+#   "message_type": "text",
+#   "scheduled_date": "2025-11-01T09:00:00"
+# }
+
+###
+
+### Get all messages (after create)
+# GET {{baseUrl}}/api/messages
+
+###
+
+### Update message
+# PUT {{baseUrl}}/api/messages/1
+# Content-Type: application/json
+
+# {
+#   "title": "Updated title"
+# }
+
+# GET {{baseUrl}}/api/messages
+
+###
+
+### Delete message
+DELETE {{baseUrl}}/api/messages/2
+
+
