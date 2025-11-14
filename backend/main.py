@@ -1,12 +1,25 @@
 from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
+from datetime import timedelta
 
 from database import Base, engine, get_db
-from models import Message
-from schemas import MessageCreate, MessageUpdate, MessageResponse
+from models import Message, User
+from schemas import (
+    MessageCreate, MessageUpdate, MessageResponse,
+    UserCreate, UserResponse, Token, TokenData
+)
+from security import (
+    verify_password, get_password_hash,
+    create_access_token, decode_access_token,
+    ACCESS_TOKEN_EXPIRE_MINUTES
+)
 
 Base.metadata.create_all(bind=engine)
+
+# OAuth2 scheme for token extraction
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/login")
 
 app = FastAPI(title="DearFutureMe API", version="1.0.0")
 
@@ -18,18 +31,52 @@ async def root():
     """
     return {"message": "DearFutureMe API is running", "version": "1.0.0"}
 
-@app.get("/api/hello")
-async def hello():
+
+# Get current user from token
+async def get_current_user(
+    token: str = Depends(oauth2_scheme),
+    db: Session = Depends(get_db)
+) -> User:
     """
-    Hello endpoint - returns a greeting message
-    This is the endpoint your React Native app will call
+    Dependency that extracts and verifies JWT token.
+    Used in protected routes.
+    
+    Steps:
+    1. Extract token from Authorization header
+    2. Decode token
+    3. Get user from database
+    4. Return user (or raise error if invalid)
     """
-    return {"message": "Hello from FastAPI backend"}
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    
+    # Decode token
+    payload = decode_access_token(token)
+    if payload is None:
+        raise credentials_exception
+    
+    # Extract user ID from token
+    user_id: str = payload.get("sub")
+    if user_id is None:
+        raise credentials_exception
+    
+    # Get user from database
+    user = db.query(User).filter(User.id == int(user_id)).first()
+    if user is None:
+        raise credentials_exception
+    
+    return user
 
 @app.post("/api/messages", response_model=MessageResponse, status_code=status.HTTP_201_CREATED)
-def create_message(message: MessageCreate, db: Session = Depends(get_db)):
-    # model_dump() converts Pydantic model to dict.
-    db_message = Message(**message.model_dump(), user_id=1)  # TODO: replace with authenticated user
+def create_message(
+    message: MessageCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)  
+):
+    db_message = Message(**message.model_dump(), user_id=current_user.id)  
     db.add(db_message)
     db.commit()
     db.refresh(db_message)
@@ -37,14 +84,26 @@ def create_message(message: MessageCreate, db: Session = Depends(get_db)):
 
 
 @app.get("/api/messages", response_model=List[MessageResponse])
-def list_messages(db: Session = Depends(get_db)):
-    messages = db.query(Message).filter(Message.user_id == 1).order_by(Message.created_at.desc()).all()
+def list_messages(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)  
+):
+    messages = db.query(Message).filter(
+        Message.user_id == current_user.id  
+    ).order_by(Message.created_at.desc()).all()
     return messages
 
 
 @app.get("/api/messages/{message_id}", response_model=MessageResponse)
-def get_message(message_id: int, db: Session = Depends(get_db)):
-    message = db.query(Message).filter(Message.id == message_id, Message.user_id == 1).first()
+def get_message(
+    message_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)  
+):
+    message = db.query(Message).filter(
+        Message.id == message_id,
+        Message.user_id == current_user.id  
+    ).first()
     if not message:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Message not found")
     return message
@@ -74,6 +133,74 @@ def delete_message(message_id: int, db: Session = Depends(get_db)):
     db.delete(message)
     db.commit()
     return None
+
+
+# Registration endpoint
+@app.post("/api/auth/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+def register(user_data: UserCreate, db: Session = Depends(get_db)):
+    """
+    Register a new user.
+    
+    Steps:
+    1. Check if email already exists
+    2. Hash the password
+    3. Create user in database
+    4. Return user (without password)
+    """
+    # Check if user already exists
+    existing_user = db.query(User).filter(User.email == user_data.email).first()
+    if existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email already registered"
+        )
+    
+    # Hash password
+    hashed_password = get_password_hash(user_data.password)
+    
+    # Create user
+    db_user = User(
+        email=user_data.email,
+        hashed_password=hashed_password
+    )
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    
+    return db_user
+
+# Login endpoint
+@app.post("/api/auth/login", response_model=Token)
+def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    """
+    Login user and return JWT token.
+    
+    Steps:
+    1. Find user by email
+    2. Verify password
+    3. Create JWT token
+    4. Return token
+    """
+    # Find user (OAuth2PasswordRequestForm uses 'username' field for email)
+    user = db.query(User).filter(User.email == form_data.username).first()
+    
+    if not user or not verify_password(form_data.password, user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    # Create token
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": str(user.id)},  # "sub" = subject (user ID)
+        expires_delta=access_token_expires
+    )
+    
+    return {"access_token": access_token, "token_type": "bearer"}
+
+
 
 
 if __name__ == "__main__":

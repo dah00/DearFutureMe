@@ -36,3 +36,24 @@ class MessageResponse(MessageBase):
 
     class Config:
         from_attributes = True  # allows returning SQLAlchemy objects directly
+
+class UserBase(BaseModel):
+    email: str = Field(..., regex=r'^[^@]+@[^@]+\.[^@]+$')
+
+class UserCreate(UserBase):
+    password: str = Field(..., min_length=8)  
+
+class UserResponse(UserBase):
+    id: int
+    created_at: datetime
+    is_active: bool
+
+    class Config:
+        from_attributes = True
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+
+class TokenData(BaseModel):
+    user_id: Optional[int] = None
