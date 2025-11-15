@@ -155,6 +155,7 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
             detail="Email already registered"
         )
     
+    print("Password length:", len(user_data.password))
     # Hash password
     hashed_password = get_password_hash(user_data.password)
     

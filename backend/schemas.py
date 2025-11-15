@@ -38,10 +38,10 @@ class MessageResponse(MessageBase):
         from_attributes = True  # allows returning SQLAlchemy objects directly
 
 class UserBase(BaseModel):
-    email: str = Field(..., regex=r'^[^@]+@[^@]+\.[^@]+$')
+    email: str = Field(..., pattern=r'^[^@]+@[^@]+\.[^@]+$')
 
 class UserCreate(UserBase):
-    password: str = Field(..., min_length=8)  
+    password: str = Field(..., min_length=8, max_length=72)  
 
 class UserResponse(UserBase):
     id: int
