@@ -70,6 +70,8 @@ async def get_current_user(
     
     return user
 
+############################# MESSAGES ############################
+
 @app.post("/api/messages", response_model=MessageResponse, status_code=status.HTTP_201_CREATED)
 def create_message(
     message: MessageCreate,
@@ -135,18 +137,11 @@ def delete_message(message_id: int, db: Session = Depends(get_db)):
     return None
 
 
+############################# AUTHENTICATION ############################
+
 # Registration endpoint
 @app.post("/api/auth/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 def register(user_data: UserCreate, db: Session = Depends(get_db)):
-    """
-    Register a new user.
-    
-    Steps:
-    1. Check if email already exists
-    2. Hash the password
-    3. Create user in database
-    4. Return user (without password)
-    """
     # Check if user already exists
     existing_user = db.query(User).filter(User.email == user_data.email).first()
     if existing_user:
@@ -155,11 +150,8 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
             detail="Email already registered"
         )
     
-    print("Password length:", len(user_data.password))
-    # Hash password
+    # Hash password and Create user
     hashed_password = get_password_hash(user_data.password)
-    
-    # Create user
     db_user = User(
         email=user_data.email,
         hashed_password=hashed_password
@@ -167,8 +159,12 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
+
+     # Create token
+    expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    token = create_access_token(data={"sub": str(db_user.id)}, expires_delta=expires)
     
-    return db_user
+    return {"access_token": token, "token_type": "bearer"}
 
 # Login endpoint
 @app.post("/api/auth/login", response_model=Token)
@@ -201,7 +197,10 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
     
     return {"access_token": access_token, "token_type": "bearer"}
 
-
+# Who I am endpoint
+@app.get("/api/auth/me", response_model=UserResponse)
+def read_me(current_user: User = Depends(get_current_user)):
+    return current_user
 
 
 if __name__ == "__main__":
