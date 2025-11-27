@@ -24,6 +24,13 @@ export interface MessagePayload {
   scheduled_date?: string; // ISO string
 }
 
+export interface UserResponse {
+  id: number;
+  email: string;
+  created_at: string;
+  is_active: boolean;
+}
+
 export interface MessageResponse extends MessagePayload {
   id: number;
   user_id: number;
@@ -66,6 +73,10 @@ export async function loginUser(payload: {
   );
 }
 
+export async function getCurrentUser(): Promise<ApiResponse<UserResponse>> {
+  return apiRequest<UserResponse>("/api/auth/me");
+}
+
 export const tokenStorage = {
   async getToken(): Promise<string | null> {
     try {
@@ -100,7 +111,9 @@ async function apiRequest<T>(
     const url = `${API_BASE_URL}${endpoint}`;
 
     const headers = new Headers(options.headers as HeadersInit);
-    headers.set("Content-Type", "application/json");
+    if (!headers.has("Content-Type")) {
+      headers.set("Content-Type", "application/json");
+    }
 
     if (requiresAuth) {
       const token = await tokenStorage.getToken();
@@ -120,6 +133,10 @@ async function apiRequest<T>(
     });
 
     if (!response.ok) {
+      // Handle 401 Unauthorized - token expired/invalid
+      if (response.status === 401 && requiresAuth) {
+        await tokenStorage.removeToken();
+      }
       const errorData = await response.json().catch(() => ({
         detail: `HTTP ${response.status}: ${response.statusText}`,
       }));

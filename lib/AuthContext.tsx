@@ -1,67 +1,121 @@
-import { AuthService } from "@/lib/auth";
-import { User } from "@supabase/supabase-js";
-import React, { useEffect, useState } from "react";
+import { loginUser, registerUser, getCurrentUser, tokenStorage } from "@/lib/api";
+import React, { createContext, useContext, useEffect, useState } from "react";
 
-/**
- * Authentication Context
- *
- * This provides authentication state to your entire app.
- * Any component can access the current user and auth status.
- */
-export const AuthContext = React.createContext<{
-  user: User | null;
+type AppUser = {
+  email: string;
+  id?: number; 
+};
+
+type AuthContextValue = {
+  user: AppUser | null;
   loading: boolean;
-  signOut: () => void;
-}>({
+  login: (email: string, password: string) => Promise<void>;
+  register: (email: string, password: string) => Promise<void>;
+  signOut: () => Promise<void>;
+};
+
+export const AuthContext = createContext<AuthContextValue>({
   user: null,
   loading: true,
-  signOut: () => {},
+  login: async () => {},
+  register: async () => {},
+  signOut: async () => {},
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AppUser | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    // Check if user is already logged in when app starts
-    const checkUser = async () => {
-      const currentUser = await AuthService.getCurrentUser();
-      setUser(currentUser);
-      setLoading(false);
+    const initializeAuth = async () => {
+      try {
+        const token = await tokenStorage.getToken();
+        
+        if (token) {
+          // Fetch actual user data from backend
+          const response = await getCurrentUser();
+          if (response.success && response.data) {
+            setUser({ 
+              email: response.data.email, 
+              id: response.data.id 
+            });
+          } else {
+            // Token invalid, clear it
+            await tokenStorage.removeToken();
+            setUser(null);
+          }
+        } else {
+          setUser(null);
+        }
+      } catch (error) {
+        console.error("Error initializing auth:", error);
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    checkUser();
-
-    // listener for auth state changes (no multi-device sync needed)
-    const {
-      data: { subscription },
-    } = AuthService.onAuthStateChange((user) => {
-      console.log("Auth state changed:", user ? "Logged in" : "Logged out");
-      setUser(user);
-      setLoading(false);
-    });
-
-    // Cleanup listener when component unmounts
-    return () => {
-      subscription?.unsubscribe();
-    };
+    initializeAuth();
   }, []);
 
+  const login = async (email: string, password: string) => {
+    const response = await loginUser({ email, password });
+    
+    if (!response.success || !response.data) {
+      throw new Error(response.error || "Login failed");
+    }
+
+    // Store token (AuthContext handles this!)
+    await tokenStorage.setToken(response.data.access_token);
+    
+    // Fetch user data
+    const userResponse = await getCurrentUser();
+    if (userResponse.success && userResponse.data) {
+      setUser({ 
+        email: userResponse.data.email, 
+        id: userResponse.data.id 
+      });
+    } else {
+      setUser({ email }); // Fallback to email only
+    }
+  };
+
+  const register = async (email: string, password: string) => {
+    const response = await registerUser({ email, password });
+    
+    if (!response.success || !response.data) {
+      throw new Error(response.error || "Registration failed");
+    }
+
+    // Store token (AuthContext handles this!)
+    await tokenStorage.setToken(response.data.access_token);
+    
+    // Fetch user data
+    const userResponse = await getCurrentUser();
+    if (userResponse.success && userResponse.data) {
+      setUser({ 
+        email: userResponse.data.email, 
+        id: userResponse.data.id 
+      });
+    } else {
+      setUser({ email }); // Fallback to email only
+    }
+  };
+
   const signOut = async () => {
-    await AuthService.signOut();
-    // The listener will automatically update the user state
+    await tokenStorage.removeToken();
+    setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, signOut }}>
+    <AuthContext.Provider value={{ user, loading, login, register, signOut }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-// Hook to easily use auth context in components
 export const useAuth = () => {
-  const context = React.useContext(AuthContext);
+  const context = useContext(AuthContext);
   if (!context) {
     throw new Error("useAuth must be used within AuthProvider");
   }
