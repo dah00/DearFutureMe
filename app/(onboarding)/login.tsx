@@ -1,6 +1,6 @@
 import Button from "@/components/Button";
 import TextField from "@/components/TextField";
-import { AuthService } from "@/lib/auth";
+import { useAuth } from "@/lib/AuthContext";
 import { Link, router } from "expo-router";
 import React, { useState } from "react";
 import {
@@ -15,6 +15,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const Login = () => {
+  const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -28,17 +29,15 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      const result = await AuthService.signIn({ email, password });
+      await login(email, password);
 
-      if (result.success) {
-        // Success! Navigate to main app
-        Alert.alert("Success", "Welcome back!");
-        router.replace("/");
-      } else {
-        Alert.alert("Login Failed", result.error || "Something went wrong");
-      }
+      Alert.alert("Success", "Welcome back!");
+      router.replace("/");
     } catch (error) {
-      Alert.alert("Error", "An unexpected error occurred");
+      Alert.alert(
+        "Login Failed",
+        error instanceof Error ? error.message : "Something went wrong"
+      );
     } finally {
       setIsLoading(false);
     }

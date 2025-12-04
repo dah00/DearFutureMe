@@ -1,5 +1,5 @@
 import React from "react";
-import { Text, TouchableOpacity } from "react-native";
+import { Pressable, Text } from "react-native";
 
 interface ButtonProps {
   onPress: () => void;
@@ -31,14 +31,23 @@ const Button = ({
     }
   };
 
+  const isDisabled = disabled || isLoading;
+
+  const handlePress = () => {
+    if (!isDisabled) {
+      onPress();
+    }
+  };
+
   return (
-    <TouchableOpacity
-      onPress={onPress}
-      disabled={disabled || isLoading}
+    <Pressable
+      onPress={isDisabled ? undefined : onPress}
+      disabled={isDisabled}
       className={`${getSizeStyles()} bg-accent rounded-xl`}
+      style={{ opacity: isDisabled ? 0.5 : 1 }}
     >
       <Text className="text-white ">{text}</Text>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

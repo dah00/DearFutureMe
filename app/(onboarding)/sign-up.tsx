@@ -2,7 +2,7 @@ import BackButton from "@/components/BackButton";
 import Button from "@/components/Button";
 import TextField from "@/components/TextField";
 import { colors } from "@/constants/colors";
-import { AuthService } from "@/lib/auth";
+import { useAuth } from "@/lib/AuthContext";
 import Checkbox from "expo-checkbox";
 import { router } from "expo-router";
 import React, { useState } from "react";
@@ -28,14 +28,15 @@ import { SafeAreaView } from "react-native-safe-area-context";
  */
 
 const SignUp = () => {
+  const { register } = useAuth();
   const [isChecked, setIsChecked] = useState<boolean>(false);
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [fullName, setFullName] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const handleSignUp = async () => {
-    if (!fullName || !email || !password) {
+    if (!email || !password) {
       Alert.alert("Error", "Please fill in all fields");
       return;
     }
@@ -45,24 +46,23 @@ const SignUp = () => {
       return;
     }
 
-    if (password.length < 6) {
-      Alert.alert("Error", "Password must be at least 6 characters");
+    if (password.length < 8) {
+      Alert.alert("Error", "Password must be at least 8 characters");
       return;
     }
 
     setIsLoading(true);
 
     try {
-      const result = await AuthService.signUp({ email, password, fullName });
+      await register(email, password);
 
-      if (result.success) {
-        Alert.alert("Success", "Account created successfully!");
-        router.replace("/");
-      } else {
-        Alert.alert("Sign Up Failed", result.error || "Something went wrong");
-      }
+      Alert.alert("Success", "Account created successfully!");
+      router.replace("/");
     } catch (error) {
-      Alert.alert("Error", "An unexpected error occurred");
+      Alert.alert(
+        "Sign Up Failed",
+        error instanceof Error ? error.message : "Something went wrong"
+      );
     } finally {
       setIsLoading(false);
     }
@@ -111,7 +111,9 @@ const SignUp = () => {
           <View className="flex-row items-center gap-4">
             <Checkbox
               value={isChecked}
-              onValueChange={setIsChecked}
+              onValueChange={(newValue) => {
+                setIsChecked(newValue);
+              }}
               color={isChecked ? colors.accent : colors.button}
               className=""
             />
@@ -124,7 +126,7 @@ const SignUp = () => {
               text={isLoading ? "Creating Account..." : "Sign Up"}
               onPress={handleSignUp}
               size="lg"
-              disabled={isLoading || !isChecked}
+              disabled={!isChecked || isLoading}
             />
           </View>
         </KeyboardAvoidingView>

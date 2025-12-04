@@ -140,7 +140,7 @@ def delete_message(message_id: int, db: Session = Depends(get_db)):
 ############################# AUTHENTICATION ############################
 
 # Registration endpoint
-@app.post("/api/auth/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+@app.post("/api/auth/register", response_model=Token, status_code=status.HTTP_201_CREATED)
 def register(user_data: UserCreate, db: Session = Depends(get_db)):
     # Check if user already exists
     existing_user = db.query(User).filter(User.email == user_data.email).first()
