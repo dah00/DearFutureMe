@@ -1,6 +1,11 @@
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI, Depends, HTTPException, status, Request, UploadFile, File
+from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
+import os 
+from pathlib import Path
+from fastapi.staticfiles import StaticFiles
 from typing import List, Optional
 from datetime import timedelta
 
@@ -8,7 +13,7 @@ from database import Base, engine, get_db
 from models import Message, User
 from schemas import (
     MessageCreate, MessageUpdate, MessageResponse,
-    UserCreate, UserResponse, Token, TokenData
+    UserCreate, UserResponse, Token, TokenData, ScheduleUpdate,
 )
 from security import (
     verify_password, get_password_hash,
@@ -16,12 +21,17 @@ from security import (
     ACCESS_TOKEN_EXPIRE_MINUTES
 )
 
+# Create uploads directory if it doesn't exist
+UPLOAD_DIR = Path("backend/uploads/voice")
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+
 Base.metadata.create_all(bind=engine)
 
 # OAuth2 scheme for token extraction
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/login")
 
 app = FastAPI(title="DearFutureMe API", version="1.0.0")
+app.mount("/uploads", StaticFiles(directory="backend/uploads"), name="uploads")
 
 @app.get("/")
 async def root():
@@ -64,11 +74,16 @@ async def get_current_user(
         raise credentials_exception
     
     # Get user from database
-    user = db.query(User).filter(User.id == int(user_id)).first()
-    if user is None:
-        raise credentials_exception
-    
-    return user
+    try:
+        user = db.query(User).filter(User.id == int(user_id)).first()
+        if user is None:
+            raise credentials_exception
+        return user
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Database error: {str(e)}"
+        )
 
 ############################# MESSAGES ############################
 
@@ -76,13 +91,20 @@ async def get_current_user(
 def create_message(
     message: MessageCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)  
+    current_user: User = Depends(get_current_user)
 ):
-    db_message = Message(**message.model_dump(), user_id=current_user.id)  
-    db.add(db_message)
-    db.commit()
-    db.refresh(db_message)
-    return db_message
+    try:
+        db_message = Message(**message.model_dump(), user_id=current_user.id)
+        db.add(db_message)
+        db.commit()
+        db.refresh(db_message)
+        return db_message
+    except Exception as e:
+        db.rollback()  
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to create message: {str(e)}"
+        )
 
 
 @app.get("/api/messages", response_model=List[MessageResponse])
@@ -90,10 +112,16 @@ def list_messages(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)  
 ):
-    messages = db.query(Message).filter(
-        Message.user_id == current_user.id  
-    ).order_by(Message.created_at.desc()).all()
-    return messages
+    try:
+        messages = db.query(Message).filter(
+            Message.user_id == current_user.id  
+        ).order_by(Message.created_at.desc()).all()
+        return messages
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to fetch messages: {str(e)}"
+        )
 
 
 @app.get("/api/messages/{message_id}", response_model=MessageResponse)
@@ -102,69 +130,324 @@ def get_message(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)  
 ):
-    message = db.query(Message).filter(
-        Message.id == message_id,
-        Message.user_id == current_user.id  
-    ).first()
-    if not message:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Message not found")
-    return message
+    try:
+        message = db.query(Message).filter(
+            Message.id == message_id,
+            Message.user_id == current_user.id  
+        ).first()
+        if not message:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Message not found")
+        return message
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to fetch message: {str(e)}"
+        )
 
 
 @app.put("/api/messages/{message_id}", response_model=MessageResponse)
-def update_message(message_id: int, update_data: MessageUpdate, db: Session = Depends(get_db)):
-    message = db.query(Message).filter(Message.id == message_id, Message.user_id == 1).first()
-    if not message:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Message not found")
+def update_message(message_id: int, update_data: MessageUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    try:
+        message = db.query(Message).filter(Message.id == message_id, Message.user_id == current_user.id).first()
+        if not message:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Message not found")
 
-    # exclude_unset=True during updates avoids overwriting missing fields.
-    for field, value in update_data.model_dump(exclude_unset=True).items():
-        setattr(message, field, value)
+        # exclude_unset=True during updates avoids overwriting missing fields.
+        for field, value in update_data.model_dump(exclude_unset=True).items():
+            setattr(message, field, value)
 
-    db.commit()
-    db.refresh(message)
-    return message
+        db.commit()
+        db.refresh(message)
+        return message
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to update message: {str(e)}"
+        )
+
+@app.get("/api/messages/upcoming", response_model=List[MessageResponse])
+def get_upcoming_messages(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Get messages scheduled for future dates.
+    Only returns messages where scheduled_date is in the future.
+    """
+    try:
+        from datetime import datetime, timezone
+        
+        now = datetime.now(timezone.utc)
+        messages = db.query(Message).filter(
+            Message.user_id == current_user.id,
+            Message.scheduled_date > now  
+        ).order_by(Message.scheduled_date.asc()).all() 
+        
+        return messages
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to fetch upcoming messages: {str(e)}"
+        )
+
+
+@app.patch("/api/messages/{message_id}/schedule", response_model=MessageResponse)
+def update_scheduled_date(
+    message_id: int,
+    schedule_data: ScheduleUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Update the scheduled date of a message.
+    """
+    try:
+        message = db.query(Message).filter(
+            Message.id == message_id,
+            Message.user_id == current_user.id
+        ).first()
+        
+        if not message:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Message not found"
+            )
+        
+        message.scheduled_date = schedule_data.scheduled_date
+        db.commit()
+        db.refresh(message)
+        
+        return message
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to update scheduled date: {str(e)}"
+        )
+
+
+@app.get("/api/messages/stats")
+def get_message_stats(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Get statistics about user's messages.
+    Returns: total count, upcoming count, by type, etc.
+    """
+    try:
+        from sqlalchemy import func
+        from datetime import datetime, timezone
+        
+        now = datetime.now(timezone.utc)
+        
+        # Total messages
+        total = db.query(Message).filter(
+            Message.user_id == current_user.id
+        ).count()
+        
+        # Upcoming messages
+        upcoming = db.query(Message).filter(
+            Message.user_id == current_user.id,
+            Message.scheduled_date > now
+        ).count()
+        
+        # Messages by type
+        text_count = db.query(Message).filter(
+            Message.user_id == current_user.id,
+            Message.message_type == "text"
+        ).count()
+        
+        voice_count = db.query(Message).filter(
+            Message.user_id == current_user.id,
+            Message.message_type == "voice"
+        ).count()
+        
+        return {
+            "total_messages": total,
+            "upcoming_messages": upcoming,
+            "text_messages": text_count,
+            "voice_messages": voice_count
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to fetch statistics: {str(e)}"
+        )
 
 
 @app.delete("/api/messages/{message_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_message(message_id: int, db: Session = Depends(get_db)):
-    message = db.query(Message).filter(Message.id == message_id, Message.user_id == 1).first()
-    if not message:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Message not found")
+def delete_message(message_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    try:
+        message = db.query(Message).filter(Message.id == message_id, Message.user_id == current_user.id).first()
+        if not message:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Message not found")
 
-    db.delete(message)
-    db.commit()
-    return None
+        db.delete(message)
+        db.commit()
+        return None
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to delete message: {str(e)}"
+        )
 
+
+@app.post("/api/messages/upload-voice", response_model=MessageResponse)
+async def upload_voice_message(
+    file: UploadFile = File(...),  # The audio file
+    title: str = Form(...),  # Title from form data
+    scheduled_date: Optional[datetime] = Form(None),  # Optional date
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Upload a voice message (audio file).
+    
+    Steps:
+    1. Validate file type (should be audio)
+    2. Save file to disk
+    3. Create message record in database
+    4. Return message with file URL
+    """
+    try:
+        if not file.content_type or not file.content_type.startswith("audio/"):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="File must be an audio file"
+            )
+        
+        import uuid
+        file_extension = file.filename.split(".")[-1] if "." in file.filename else "mp3"
+        unique_filename = f"{uuid.uuid4()}.{file_extension}"
+        file_path = UPLOAD_DIR / unique_filename
+        
+        with open(file_path, "wb") as buffer:
+            content = await file.read()  
+            buffer.write(content) 
+        
+        # Step 4: Create message in database
+        db_message = Message(
+            title=title,
+            message_type=MessageType.VOICE,
+            voice_file_path=str(file_path),  
+            scheduled_date=scheduled_date,
+            user_id=current_user.id
+        )
+        db.add(db_message)
+        db.commit()
+        db.refresh(db_message)
+        
+        return db_message
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        if 'file_path' in locals() and file_path.exists():
+            file_path.unlink()  
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to upload voice message: {str(e)}"
+        )
+
+@app.get("/api/messages/{message_id}/voice")
+async def get_voice_file(
+    message_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Get voice file for a message.
+    Returns the audio file for streaming/download.
+    """
+    try:
+        message = db.query(Message).filter(
+            Message.id == message_id,
+            Message.user_id == current_user.id
+        ).first()
+        
+        if not message:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Message not found"
+            )
+        
+        if not message.voice_file_path:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="This message has no voice file"
+            )
+        
+        file_path = Path(message.voice_file_path)
+        if not file_path.exists():
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Voice file not found on server"
+            )
+        
+        from fastapi.responses import FileResponse
+        return FileResponse(
+            path=file_path,
+            media_type="audio/mpeg",  
+            filename=message.title + ".mp3"
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to retrieve voice file: {str(e)}"
+        )
 
 ############################# AUTHENTICATION ############################
 
 # Registration endpoint
 @app.post("/api/auth/register", response_model=Token, status_code=status.HTTP_201_CREATED)
 def register(user_data: UserCreate, db: Session = Depends(get_db)):
-    # Check if user already exists
-    existing_user = db.query(User).filter(User.email == user_data.email).first()
-    if existing_user:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email already registered"
+    try:
+        # Check if user already exists
+        existing_user = db.query(User).filter(User.email == user_data.email).first()
+        if existing_user:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Email already registered"
+            )
+        
+        # Hash password and Create user
+        hashed_password = get_password_hash(user_data.password)
+        db_user = User(
+            email=user_data.email,
+            hashed_password=hashed_password
         )
-    
-    # Hash password and Create user
-    hashed_password = get_password_hash(user_data.password)
-    db_user = User(
-        email=user_data.email,
-        hashed_password=hashed_password
-    )
-    db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
+        db.add(db_user)
+        db.commit()
+        db.refresh(db_user)
 
-     # Create token
-    expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    token = create_access_token(data={"sub": str(db_user.id)}, expires_delta=expires)
-    
-    return {"access_token": token, "token_type": "bearer"}
+         # Create token
+        expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        token = create_access_token(data={"sub": str(db_user.id)}, expires_delta=expires)
+        
+        return {"access_token": token, "token_type": "bearer"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to register user: {str(e)}"
+        )
 
 # Login endpoint
 @app.post("/api/auth/login", response_model=Token)
@@ -178,29 +461,75 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
     3. Create JWT token
     4. Return token
     """
-    # Find user (OAuth2PasswordRequestForm uses 'username' field for email)
-    user = db.query(User).filter(User.email == form_data.username).first()
-    
-    if not user or not verify_password(form_data.password, user.hashed_password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
-            headers={"WWW-Authenticate": "Bearer"},
+    try:
+        # Find user (OAuth2PasswordRequestForm uses 'username' field for email)
+        user = db.query(User).filter(User.email == form_data.username).first()
+        
+        if not user or not verify_password(form_data.password, user.hashed_password):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Incorrect email or password",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        
+        # Create token
+        access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        access_token = create_access_token(
+            data={"sub": str(user.id)},  # "sub" = subject (user ID)
+            expires_delta=access_token_expires
         )
-    
-    # Create token
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
-        data={"sub": str(user.id)},  # "sub" = subject (user ID)
-        expires_delta=access_token_expires
-    )
-    
-    return {"access_token": access_token, "token_type": "bearer"}
+        
+        return {"access_token": access_token, "token_type": "bearer"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to login: {str(e)}"
+        )
 
 # Who I am endpoint
 @app.get("/api/auth/me", response_model=UserResponse)
 def read_me(current_user: User = Depends(get_current_user)):
-    return current_user
+    try:
+        return current_user
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to fetch user data: {str(e)}"
+        )
+
+############################# ERROR HANDLING ############################
+
+# Custom exception handler for validation errors
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    """
+    Custom handler for validation errors.
+    Returns consistent error format.
+    """
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content={
+            "detail": exc.errors(),  
+            "message": "Validation error: Please check your input"
+        }
+    )
+
+# Custom exception handler for HTTP exceptions
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    """
+    Custom handler for HTTP exceptions.
+    Returns consistent error format.
+    """
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "detail": exc.detail,
+            "message": exc.detail  
+        }
+    )
 
 
 if __name__ == "__main__":

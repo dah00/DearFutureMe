@@ -194,3 +194,63 @@ export async function deleteMessage(id: number): Promise<ApiResponse<void>> {
     method: "DELETE",
   });
 }
+
+// Upload voice message
+export async function uploadVoiceMessage(
+  file: File | Blob,  
+  title: string,
+  scheduled_date?: string
+): Promise<ApiResponse<MessageResponse>> {
+  try {
+    const formData = new FormData();
+    formData.append("file", file as any);  
+    formData.append("title", title);
+    if (scheduled_date) {
+      formData.append("scheduled_date", scheduled_date);
+    }
+
+    const token = await tokenStorage.getToken();
+    if (!token) {
+      return {
+        success: false,
+        error: "Not authenticated",
+      };
+    }
+
+    const url = `${API_BASE_URL}/api/messages/upload-voice`;
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        await tokenStorage.removeToken();
+      }
+      const errorData = await response.json().catch(() => ({
+        detail: `HTTP ${response.status}: ${response.statusText}`,
+      }));
+      return {
+        success: false,
+        error: errorData.detail || "Upload failed",
+      };
+    }
+
+    const data = await response.json();
+    return {
+      success: true,
+      data,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Network error: Could not upload file",
+    };
+  }
+}

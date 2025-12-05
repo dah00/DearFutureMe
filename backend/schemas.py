@@ -27,12 +27,15 @@ class MessageUpdate(BaseModel):
     message_type: Optional[MessageType] = None
     scheduled_date: Optional[datetime] = None
 
+class ScheduleUpdate(BaseModel):
+    scheduled_date: datetime
 
 class MessageResponse(MessageBase):
     id: int
     user_id: int
     created_at: datetime
     updated_at: Optional[datetime] 
+    voice_file_path: Optional[str] = None  
 
     class Config:
         from_attributes = True  # allows returning SQLAlchemy objects directly

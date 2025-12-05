@@ -23,6 +23,7 @@ class Message(Base):
     user = relationship("User", back_populates="messages")
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    voice_file_path = Column(String(500), nullable=True)
 
 class User(Base):
     __tablename__ = "users"
