@@ -1,19 +1,20 @@
-from fastapi import FastAPI, Depends, HTTPException, status, Request, UploadFile, File
+from fastapi import FastAPI, Depends, HTTPException, status, Request, UploadFile, File, Form
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 import os 
 from pathlib import Path
 from fastapi.staticfiles import StaticFiles
 from typing import List, Optional
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 from database import Base, engine, get_db
 from models import Message, User
 from schemas import (
     MessageCreate, MessageUpdate, MessageResponse,
-    UserCreate, UserResponse, Token, TokenData, ScheduleUpdate,
+    UserCreate, UserResponse, Token, TokenData, ScheduleUpdate, MessageType,
 )
 from security import (
     verify_password, get_password_hash,
@@ -22,7 +23,7 @@ from security import (
 )
 
 # Create uploads directory if it doesn't exist
-UPLOAD_DIR = Path("backend/uploads/voice")
+UPLOAD_DIR = Path("uploads/voice")
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 Base.metadata.create_all(bind=engine)
@@ -31,6 +32,16 @@ Base.metadata.create_all(bind=engine)
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/login")
 
 app = FastAPI(title="DearFutureMe API", version="1.0.0")
+
+# CORS middleware - allow requests from mobile app
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # In production, replace with specific origins
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 app.mount("/uploads", StaticFiles(directory="backend/uploads"), name="uploads")
 
 @app.get("/")
@@ -321,14 +332,25 @@ async def upload_voice_message(
     4. Return message with file URL
     """
     try:
-        if not file.content_type or not file.content_type.startswith("audio/"):
+        # Check both content-type and file extension
+        is_audio_content_type = file.content_type and file.content_type.startswith("audio/")
+        is_audio_extension = False
+        file_extension = "mp3"  # Default fallback
+
+        if file.filename:
+            # Get file extension (lowercase for consistency)
+            file_extension = file.filename.split(".")[-1].lower() if "." in file.filename else "mp3"
+            audio_extensions = {"mp3", "wav", "m4a", "aac", "ogg", "flac"}
+            is_audio_extension = file_extension in audio_extensions
+
+        if not (is_audio_content_type or is_audio_extension):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="File must be an audio file"
+                detail="File must be an audio file (audio/* content-type or .mp3/.wav/.m4a extension)"
             )
         
+        # Reuse file_extension variable (already lowercase)
         import uuid
-        file_extension = file.filename.split(".")[-1] if "." in file.filename else "mp3"
         unique_filename = f"{uuid.uuid4()}.{file_extension}"
         file_path = UPLOAD_DIR / unique_filename
         

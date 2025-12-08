@@ -44,4 +44,19 @@ GET {{baseUrl}}/api/messages
 ### Delete message
 DELETE {{baseUrl}}/api/messages/2
 
+### Upload voice message
+POST {{baseUrl}}/api/messages/upload-voice
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: multipart/form-data
+
+file=@/path/to/your/audio.mp3
+title=Test Voice Message
+scheduled_date=2025-12-01T09:00:00
+
+###
+
+### Get voice file
+GET {{baseUrl}}/api/messages/1/voice
+Authorization: Bearer YOUR_TOKEN_HERE
+
 

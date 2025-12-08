@@ -3,7 +3,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 const TOKEN_KEY = "dfm_token";
 
 const API_BASE_URL = __DEV__
-  ? "http://10.1.10.81:8000"
+  ? "http://10.0.0.14:8000"
   : "https://your-deployed-api.com";
 
 export interface AuthResponse {
@@ -102,11 +102,16 @@ export const tokenStorage = {
   },
 };
 
+const REQUEST_TIMEOUT = 10000; // 10 seconds
+
 async function apiRequest<T>(
   endpoint: string,
   options: RequestInit = {},
   requiresAuth = true
 ): Promise<ApiResponse<T>> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
+
   try {
     const url = `${API_BASE_URL}${endpoint}`;
 
@@ -120,6 +125,7 @@ async function apiRequest<T>(
       if (token) {
         headers.set("Authorization", `Bearer ${token}`);
       } else {
+        clearTimeout(timeoutId);
         return {
           success: false,
           error: "Not authenticated",
@@ -130,7 +136,10 @@ async function apiRequest<T>(
     const response = await fetch(url, {
       ...options,
       headers,
+      signal: controller.signal,
     });
+
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       // Handle 401 Unauthorized - token expired/invalid
@@ -152,6 +161,15 @@ async function apiRequest<T>(
       data,
     };
   } catch (error) {
+    clearTimeout(timeoutId);
+
+    if (error instanceof Error && error.name === "AbortError") {
+      return {
+        success: false,
+        error: "Request timeout: Server took too long to respond",
+      };
+    }
+
     return {
       success: false,
       error:
@@ -197,13 +215,16 @@ export async function deleteMessage(id: number): Promise<ApiResponse<void>> {
 
 // Upload voice message
 export async function uploadVoiceMessage(
-  file: File | Blob,  
+  file: File | Blob,
   title: string,
   scheduled_date?: string
 ): Promise<ApiResponse<MessageResponse>> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT * 3); // Longer timeout for file uploads (30s)
+
   try {
     const formData = new FormData();
-    formData.append("file", file as any);  
+    formData.append("file", file as any);
     formData.append("title", title);
     if (scheduled_date) {
       formData.append("scheduled_date", scheduled_date);
@@ -211,6 +232,7 @@ export async function uploadVoiceMessage(
 
     const token = await tokenStorage.getToken();
     if (!token) {
+      clearTimeout(timeoutId);
       return {
         success: false,
         error: "Not authenticated",
@@ -224,7 +246,10 @@ export async function uploadVoiceMessage(
         Authorization: `Bearer ${token}`,
       },
       body: formData,
+      signal: controller.signal,
     });
+
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       if (response.status === 401) {
@@ -245,6 +270,15 @@ export async function uploadVoiceMessage(
       data,
     };
   } catch (error) {
+    clearTimeout(timeoutId);
+
+    if (error instanceof Error && error.name === "AbortError") {
+      return {
+        success: false,
+        error: "Upload timeout: Server took too long to respond",
+      };
+    }
+
     return {
       success: false,
       error:
@@ -254,3 +288,5 @@ export async function uploadVoiceMessage(
     };
   }
 }
+
+

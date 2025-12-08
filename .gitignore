@@ -33,6 +33,14 @@ yarn-error.*
 # local env files
 .env*.local
 
+# Database files 
+*.db
+*.sqlite
+*.sqlite3
+
+# Test files
+test-audio.mp3
+
 # typescript
 *.tsbuildinfo
 
