@@ -3,7 +3,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 const TOKEN_KEY = "dfm_token";
 
 const API_BASE_URL = __DEV__
-  ? "http://10.0.0.14:8000"
+  ? "http://10.1.10.81:8000"
   : "https://your-deployed-api.com";
 
 export interface AuthResponse {
@@ -24,11 +24,22 @@ export interface MessagePayload {
   scheduled_date?: string; // ISO string
 }
 
+export interface ScheduleUpdate {
+  scheduled_date: string; // ISO string format
+}
+
 export interface UserResponse {
   id: number;
   email: string;
   created_at: string;
   is_active: boolean;
+}
+
+export interface MessageStatsResponse {
+  total_messages: number;
+  upcoming_messages: number;
+  text_messages: number;
+  voice_messages: number;
 }
 
 export interface MessageResponse extends MessagePayload {
@@ -289,4 +300,24 @@ export async function uploadVoiceMessage(
   }
 }
 
+export async function getUpcomingMessages(): Promise<
+  ApiResponse<MessageResponse[]>
+> {
+  return apiRequest<MessageResponse[]>("/api/messages/upcoming");
+}
 
+export async function getMessageStats(): Promise<
+  ApiResponse<MessageStatsResponse>
+> {
+  return apiRequest<MessageStatsResponse>("/api/messages/stats");
+}
+
+export async function updateScheduleDate(
+  message_id: number,
+  schedule_data: ScheduleUpdate
+): Promise<ApiResponse<MessageResponse>> {
+  return apiRequest<MessageResponse>(`/api/messages/${message_id}/schedule`, {
+    method: "PATCH",
+    body: JSON.stringify(schedule_data),
+  });
+}

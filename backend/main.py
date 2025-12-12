@@ -353,9 +353,15 @@ async def upload_voice_message(
         import uuid
         unique_filename = f"{uuid.uuid4()}.{file_extension}"
         file_path = UPLOAD_DIR / unique_filename
+        MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
         
         with open(file_path, "wb") as buffer:
             content = await file.read()  
+            if len(content) > MAX_FILE_SIZE:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="File too large. Maximum size is 10MB"
+                )
             buffer.write(content) 
         
         # Step 4: Create message in database

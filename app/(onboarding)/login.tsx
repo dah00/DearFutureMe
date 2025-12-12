@@ -94,7 +94,7 @@ const Login = () => {
           {/* Sign In button */}
           <View className="items-center">
             <Button
-              text={isLoading ? "Signing In..." : "Sign In"}
+              text={isLoading ? "Logging In..." : "Log In"}
               onPress={handleLogIn}
               size="lg"
               disabled={isLoading}
