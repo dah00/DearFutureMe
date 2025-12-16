@@ -135,52 +135,8 @@ def list_messages(
         )
 
 
-@app.get("/api/messages/{message_id}", response_model=MessageResponse)
-def get_message(
-    message_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)  
-):
-    try:
-        message = db.query(Message).filter(
-            Message.id == message_id,
-            Message.user_id == current_user.id  
-        ).first()
-        if not message:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Message not found")
-        return message
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to fetch message: {str(e)}"
-        )
-
-
-@app.put("/api/messages/{message_id}", response_model=MessageResponse)
-def update_message(message_id: int, update_data: MessageUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    try:
-        message = db.query(Message).filter(Message.id == message_id, Message.user_id == current_user.id).first()
-        if not message:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Message not found")
-
-        # exclude_unset=True during updates avoids overwriting missing fields.
-        for field, value in update_data.model_dump(exclude_unset=True).items():
-            setattr(message, field, value)
-
-        db.commit()
-        db.refresh(message)
-        return message
-    except HTTPException:
-        raise
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to update message: {str(e)}"
-        )
-
+# IMPORTANT: Specific routes must come BEFORE parameterized routes!
+# FastAPI matches routes in order, so /upcoming and /stats must come before /{message_id}
 @app.get("/api/messages/upcoming", response_model=List[MessageResponse])
 def get_upcoming_messages(
     db: Session = Depends(get_db),
@@ -204,43 +160,6 @@ def get_upcoming_messages(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to fetch upcoming messages: {str(e)}"
-        )
-
-
-@app.patch("/api/messages/{message_id}/schedule", response_model=MessageResponse)
-def update_scheduled_date(
-    message_id: int,
-    schedule_data: ScheduleUpdate,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    """
-    Update the scheduled date of a message.
-    """
-    try:
-        message = db.query(Message).filter(
-            Message.id == message_id,
-            Message.user_id == current_user.id
-        ).first()
-        
-        if not message:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Message not found"
-            )
-        
-        message.scheduled_date = schedule_data.scheduled_date
-        db.commit()
-        db.refresh(message)
-        
-        return message
-    except HTTPException:
-        raise
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to update scheduled date: {str(e)}"
         )
 
 
@@ -291,6 +210,90 @@ def get_message_stats(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to fetch statistics: {str(e)}"
+        )
+
+
+@app.get("/api/messages/{message_id}", response_model=MessageResponse)
+def get_message(
+    message_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)  
+):
+    try:
+        message = db.query(Message).filter(
+            Message.id == message_id,
+            Message.user_id == current_user.id  
+        ).first()
+        if not message:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Message not found")
+        return message
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to fetch message: {str(e)}"
+        )
+
+
+@app.put("/api/messages/{message_id}", response_model=MessageResponse)
+def update_message(message_id: int, update_data: MessageUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    try:
+        message = db.query(Message).filter(Message.id == message_id, Message.user_id == current_user.id).first()
+        if not message:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Message not found")
+
+        # exclude_unset=True during updates avoids overwriting missing fields.
+        for field, value in update_data.model_dump(exclude_unset=True).items():
+            setattr(message, field, value)
+
+        db.commit()
+        db.refresh(message)
+        return message
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to update message: {str(e)}"
+        )
+
+
+@app.patch("/api/messages/{message_id}/schedule", response_model=MessageResponse)
+def update_scheduled_date(
+    message_id: int,
+    schedule_data: ScheduleUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Update the scheduled date of a message.
+    """
+    try:
+        message = db.query(Message).filter(
+            Message.id == message_id,
+            Message.user_id == current_user.id
+        ).first()
+        
+        if not message:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Message not found"
+            )
+        
+        message.scheduled_date = schedule_data.scheduled_date
+        db.commit()
+        db.refresh(message)
+        
+        return message
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to update scheduled date: {str(e)}"
         )
 
 

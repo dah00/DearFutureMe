@@ -19,7 +19,15 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 const Home = () => {
   const [backendMessage, setBackendMessage] = useState<string>("");
-  const { messages, isLoading, error, reload, createMessage } = useMessages();
+  const {
+    messages,
+    isLoading,
+    error,
+    reload,
+    createMessage,
+    upcomingMessages,
+    isLoadingUpcoming,
+  } = useMessages();
 
   return (
     <SafeAreaView className="flex-1 px-6 py-8 bg-secondary">
@@ -42,17 +50,6 @@ const Home = () => {
             </Pressable>
           </View>
 
-          {/* Backend Connection Test - ADD THIS SECTION */}
-          <View className="mb-4 p-3 bg-primary rounded-lg">
-            <Text className="text-sm font-semibold mb-1">Backend Status:</Text>
-            {isLoading ? (
-              <Text className="text-xs">Connecting to backend...</Text>
-            ) : (
-              <Text className="text-xs">{backendMessage}</Text>
-            )}
-          </View>
-          {/* END OF ADDED SECTION */}
-
           {/* * Upcoming Messages */}
           <View className="mb-10">
             <View className="flex-row justify-between items-center">
@@ -63,16 +60,18 @@ const Home = () => {
             </View>
 
             <View className="bg-primary rounded-lg mt-4">
-              {isLoading ? (
+              {isLoadingUpcoming ? (
                 <View className="p-4">
                   <Text>Loading messages…</Text>
                 </View>
               ) : error ? (
                 <View className="p-4">
-                  <Text className="text-red-500">{error}</Text>
+                  <Text className="text-red-500">
+                    {typeof error === "string" ? error : JSON.stringify(error)}
+                  </Text>
                 </View>
               ) : (
-                <MessageList messages={messages} />
+                <MessageList messages={upcomingMessages} />
               )}
             </View>
           </View>

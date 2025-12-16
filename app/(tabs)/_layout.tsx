@@ -1,8 +1,9 @@
 import { colors } from "@/constants/colors";
 import { icons } from "@/constants/icons";
-import { Tabs } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { Tabs, router } from "expo-router";
 import React from "react";
-import { Image, Text, View } from "react-native";
+import { Image, Pressable, Text, View } from "react-native";
 
 const TabIcon = ({ focused, icon, title }: any) => {
   return (
@@ -49,62 +50,81 @@ const TabIcon = ({ focused, icon, title }: any) => {
 
 const _Layout = () => {
   return (
-    <Tabs
-      screenOptions={{
-        tabBarShowLabel: false,
-        headerShown: false,
-        tabBarItemStyle: {
-          flex: 1,
-          height: "100%",
-        },
-        tabBarIconStyle: {
-          width: "100%",
-          height: "100%",
-        },
-        tabBarStyle: {
-          // position: "absolute",
-          backgroundColor: colors.textPrimary,
-          width: "90%",
-          height: 80,
-          bottom: 19,
-          alignSelf: "center",
-          borderRadius: 25,
-          borderBlockColor: colors.textSecondary,
-          paddingBottom: 0,
-        },
-      }}
-    >
-      <Tabs.Screen
-        name="Home"
-        options={{
-          title: "Home",
+    <View className="flex-1">
+      <Tabs
+        screenOptions={{
+          tabBarShowLabel: false,
           headerShown: false,
-          tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} icon={icons.home} title="Home" />
-          ),
+          tabBarItemStyle: {
+            flex: 1,
+            height: "100%",
+          },
+          tabBarIconStyle: {
+            width: "100%",
+            height: "100%",
+          },
+          tabBarStyle: {
+            backgroundColor: colors.textPrimary,
+            width: "90%",
+            height: 80,
+            bottom: 19,
+            alignSelf: "center",
+            borderRadius: 25,
+            borderBlockColor: colors.textSecondary,
+            paddingBottom: 0,
+            position: "relative",
+          },
         }}
-      />
-      <Tabs.Screen
-        name="Records"
-        options={{
-          title: "Records",
-          headerShown: false,
-          tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} icon={icons.records} title="Records" />
-          ),
+      >
+        <Tabs.Screen
+          name="Home"
+          options={{
+            title: "Home",
+            headerShown: false,
+            tabBarIcon: ({ focused }) => (
+              <TabIcon focused={focused} icon={icons.home} title="Home" />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="Records"
+          options={{
+            title: "Records",
+            headerShown: false,
+            tabBarIcon: ({ focused }) => (
+              <TabIcon focused={focused} icon={icons.records} title="Records" />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="Profile"
+          options={{
+            title: "Profile",
+            headerShown: false,
+            tabBarIcon: ({ focused }) => (
+              <TabIcon focused={focused} icon={icons.user} title="Profile" />
+            ),
+          }}
+        />
+      </Tabs>
+      {/* Floating Action Button */}
+      <Pressable
+        onPress={() => router.push("/recording")}
+        className="absolute w-16 h-16 rounded-full bg-accent items-center justify-center shadow-lg"
+        style={{
+          bottom: 115, // Position above the tab bar with some spacing
+          left: "50%",
+          marginLeft: -32, // Half of button width (64px / 2) to center it
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.3,
+          shadowRadius: 8,
+          elevation: 8,
         }}
-      />
-      <Tabs.Screen
-        name="Profile"
-        options={{
-          title: "Profile",
-          headerShown: false,
-          tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} icon={icons.user} title="Profile" />
-          ),
-        }}
-      />
-    </Tabs>
+      >
+        <Ionicons name="add" size={32} color="#FFFFFF" />
+      </Pressable>
+    </View>
   );
 };
 
