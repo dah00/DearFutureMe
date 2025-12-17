@@ -34,16 +34,6 @@ const TabIcon = ({ focused, icon, title }: any) => {
       >
         {title}
       </Text>
-      {focused && (
-        <View
-          style={{
-            width: 50,
-            height: 4,
-            backgroundColor: "#7C3AED",
-            borderRadius: 2,
-          }}
-        />
-      )}
     </View>
   );
 };
@@ -58,6 +48,7 @@ const _Layout = () => {
           tabBarItemStyle: {
             flex: 1,
             height: "100%",
+            maxWidth: "33%",
           },
           tabBarIconStyle: {
             width: "100%",
@@ -65,14 +56,18 @@ const _Layout = () => {
           },
           tabBarStyle: {
             backgroundColor: colors.textPrimary,
-            width: "90%",
-            height: 80,
-            bottom: 19,
+            width: "92%",
+            height: 75,
+            bottom: 18,
             alignSelf: "center",
-            borderRadius: 25,
+            borderRadius: 30,
             borderBlockColor: colors.textSecondary,
             paddingBottom: 0,
+            paddingHorizontal: 12,
             position: "relative",
+            borderTopWidth: 0,
+            borderWidth: 0,
+            justifyContent: "space-around",
           },
         }}
       >
@@ -107,22 +102,18 @@ const _Layout = () => {
           }}
         />
       </Tabs>
-      {/* Floating Action Button */}
+      {/* Floating Action Button - Integrated Design */}
       <Pressable
         onPress={() => router.push("/recording")}
-        className="absolute w-16 h-16 rounded-full bg-accent items-center justify-center shadow-lg"
+        className="absolute w-[60px] h-[60px] rounded-full bg-accent items-center justify-center z-10 border-2 border-white/30"
         style={{
-          bottom: 115, // Position above the tab bar with some spacing
           left: "50%",
-          marginLeft: -32, // Half of button width (64px / 2) to center it
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.3,
-          shadowRadius: 8,
-          elevation: 8,
+          bottom: 85,
+          marginLeft: -30, // Half of button width (60px / 2)
+          elevation: 12,
         }}
       >
-        <Ionicons name="add" size={32} color="#FFFFFF" />
+        <Ionicons name="add" size={36} color="#FFFFFF" />
       </Pressable>
     </View>
   );

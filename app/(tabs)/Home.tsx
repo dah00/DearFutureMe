@@ -77,23 +77,6 @@ const Home = () => {
           </View>
 
           <View>
-            {/** Voice Recording */}
-            <View>
-              <Text className="text-2xl">Let's Record</Text>
-              <Text className="text-lg">
-                What will your future self thank you for
-              </Text>
-
-              <Pressable
-                className="w-32 h-32 mt-10 rounded-full bg-primary items-center justify-center self-center"
-                onPress={() => {
-                  router.push("/recording");
-                }}
-              >
-                <Image source={icons.voice} className="w-8 h-8" />
-                <Text className="font-instrument text-2xl">Record</Text>
-              </Pressable>
-            </View>
             {/** Text Recording */}
             <View className="mt-6">
               <Pressable
