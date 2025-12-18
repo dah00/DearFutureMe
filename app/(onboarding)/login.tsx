@@ -19,19 +19,25 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showErrors, setShowErrors] = useState(false); 
 
   const handleLogIn = async () => {
-    if (!email || !password) {
-      Alert.alert("Error", "Please fill in all fields");
+    // Trim whitespace and validate
+    const trimmedEmail = email.trim();
+    const trimmedPassword = password.trim();
+
+    if (!trimmedEmail || !trimmedPassword) {
+      setShowErrors(true);
       return;
     }
 
+    setShowErrors(false);
     setIsLoading(true);
 
     try {
-      await login(email, password);
+      await login(trimmedEmail, trimmedPassword);
 
-      Alert.alert("Success", "Welcome back!");
+      // Navigate immediately - success alert is optional
       router.replace("/");
     } catch (error) {
       Alert.alert(
@@ -51,7 +57,7 @@ const Login = () => {
           className="flex-1 justify-center px-6 gap-12"
         >
           {/*Header*/}
-          <View className="">
+          <View>
             <Text className="text-5xl font-medium text-center">Login</Text>
           </View>
 
@@ -60,18 +66,26 @@ const Login = () => {
             <TextField
               placeholder="Email Address"
               value={email}
-              onChangeText={setEmail}
+              onChangeText={(text) => {
+                setEmail(text);
+              }}
               autoCapitalize="none"
               autoComplete="email"
               keyboardType="email-address"
+              isRequired={true}
+              showError={showErrors && !email.trim()}
             />
             <TextField
               placeholder="Password"
               value={password}
-              onChangeText={setPassword}
+              onChangeText={(text) => {
+                setPassword(text);
+              }}
               autoCapitalize="none"
               autoComplete="password"
               secureTextEntry={true}
+              isRequired={true}
+              showError={showErrors && !password.trim()}
             />
             <View className="flex items-end">
               <Link href="/forgot-password" className="text-accent underline">

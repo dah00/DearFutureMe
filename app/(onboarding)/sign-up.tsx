@@ -19,12 +19,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 /**
  * TODO:
- * - disable the the button until agree to terms and conditions is checked
  * - Remove permanent caps icon above eye icon of the password text field
- * - Show an error message "you have to agree with the terms and condition"
- * when Sign up button is pressed, but checkbox is not checked
- *
- *
+ *   (This is a system keyboard feature, may require custom keyboard implementation)
  */
 
 const SignUp = () => {
@@ -34,37 +30,52 @@ const SignUp = () => {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [showError, setShowError] = useState<boolean>(false);
 
   const handleSignUp = async () => {
     if (!email || !password) {
+      setShowError(true);
       Alert.alert("Error", "Please fill in all fields");
-      return;
-    }
+      // Trim whitespace and validate
+      const trimmedFullName = fullName.trim();
+      const trimmedEmail = email.trim();
+      const trimmedPassword = password.trim();
 
-    if (!isChecked) {
-      Alert.alert("Error", "Please agree to the terms and conditions");
-      return;
-    }
+      if (!trimmedFullName || !trimmedEmail || !trimmedPassword) {
+        setShowError(true);
+        return;
+      } else if (trimmedPassword.length < 8) {
+        setShowError(true);
+        Alert.alert("Error", "Password must be at least 8 characters");
+        return;
+      }
 
-    if (password.length < 8) {
-      Alert.alert("Error", "Password must be at least 8 characters");
-      return;
-    }
+      if (!isChecked) {
+        Alert.alert("Error", "Please agree to the terms and conditions");
+        return;
+      }
 
-    setIsLoading(true);
+      if (password.length < 8) {
+        Alert.alert("Error", "Password must be at least 8 characters");
+        return;
+      }
 
-    try {
-      await register(email, password);
+      setShowError(false);
+      setIsLoading(true);
 
-      Alert.alert("Success", "Account created successfully!");
-      router.replace("/");
-    } catch (error) {
-      Alert.alert(
-        "Sign Up Failed",
-        error instanceof Error ? error.message : "Something went wrong"
-      );
-    } finally {
-      setIsLoading(false);
+      try {
+        await register(trimmedEmail, trimmedPassword);
+
+        // Navigate immediately - success alert is optional
+        router.replace("/");
+      } catch (error) {
+        Alert.alert(
+          "Sign Up Failed",
+          error instanceof Error ? error.message : "Something went wrong"
+        );
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
   return (
@@ -88,6 +99,8 @@ const SignUp = () => {
               value={fullName}
               onChangeText={setFullName}
               autoCapitalize="words"
+              isRequired={true}
+              showError={showError && !fullName.trim()}
             />
             <TextField
               placeholder="Email"
@@ -96,6 +109,8 @@ const SignUp = () => {
               autoCapitalize="none"
               autoComplete="email"
               keyboardType="email-address"
+              isRequired={true}
+              showError={showError && !email.trim()}
             />
             <TextField
               placeholder="Password"
@@ -104,20 +119,23 @@ const SignUp = () => {
               autoCapitalize="none"
               autoComplete="password"
               secureTextEntry={true}
+              isRequired={true}
+              showError={showError && (!password.trim() || password.length < 8)}
             />
           </View>
 
           {/* Terms and Condition */}
-          <View className="flex-row items-center gap-4">
-            <Checkbox
-              value={isChecked}
-              onValueChange={(newValue) => {
-                setIsChecked(newValue);
-              }}
-              color={isChecked ? colors.accent : colors.button}
-              className=""
-            />
-            <Text>I agree to the terms & conditions</Text>
+          <View>
+            <View className="flex-row items-center gap-4">
+              <Checkbox
+                value={isChecked}
+                onValueChange={(newValue) => {
+                  setIsChecked(newValue);
+                }}
+                color={isChecked ? colors.accent : colors.button}
+              />
+              <Text>I agree to the terms & conditions</Text>
+            </View>
           </View>
 
           {/* Sign Up Button */}
