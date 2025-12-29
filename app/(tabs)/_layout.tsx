@@ -61,7 +61,7 @@ const _Layout = () => {
             bottom: 18,
             alignSelf: "center",
             borderRadius: 30,
-            borderBlockColor: colors.textSecondary,
+            borderBlockColor: colors.border,
             paddingBottom: 0,
             paddingHorizontal: 12,
             position: "relative",
@@ -105,7 +105,7 @@ const _Layout = () => {
       {/* Floating Action Button - Integrated Design */}
       <Pressable
         onPress={() => router.push("/recording")}
-        className="absolute w-[60px] h-[60px] rounded-full bg-accent items-center justify-center z-10 border-2 border-white/30"
+        className="absolute w-[60px] h-[60px] rounded-full bg-primary items-center justify-center z-10 border-2 border-white/30"
         style={{
           left: "50%",
           bottom: 85,

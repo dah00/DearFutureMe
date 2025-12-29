@@ -1,12 +1,11 @@
 import { colors } from "@/constants/colors";
-import { icons } from "@/constants/icons";
-import React, { useMemo } from "react";
-import { Animated, Image, Pressable, Text, View } from "react-native";
+import React from "react";
+import { Pressable, Text, View } from "react-native";
+import AudioWaveform from "./AudioWaveform";
 
 interface VoiceRecordingControlsProps {
   isRecording: boolean;
   recordingUri: string | null;
-  pulseAnim: Animated.Value;
   onStartRecording: () => void;
   onStopRecording: () => void;
 }
@@ -14,42 +13,23 @@ interface VoiceRecordingControlsProps {
 const VoiceRecordingControls: React.FC<VoiceRecordingControlsProps> = ({
   isRecording,
   recordingUri,
-  pulseAnim,
   onStartRecording,
   onStopRecording,
 }) => {
-  // Use a constant animated value for non-recording state
-  const staticScale = useMemo(() => new Animated.Value(1), []);
-
   return (
     <View className="mt-8 items-center">
-      {/* Volume Visualization - Pulsing Circle */}
-      <Animated.View
-        style={{
-          width: 120,
-          height: 120,
-          borderRadius: 60,
-          backgroundColor: isRecording ? colors.accent : colors.secondary,
-          alignItems: "center",
-          justifyContent: "center",
-          transform: [
-            {
-              scale: isRecording ? pulseAnim : staticScale,
-            },
-          ],
-          borderWidth: 2,
-          borderColor: isRecording ? colors.accent : colors.textPrimary,
-        }}
-      >
-        <Image
-          source={icons.voice}
-          style={{
-            width: 40,
-            height: 40,
-            tintColor: isRecording ? "#FFFFFF" : colors.textPrimary,
-          }}
+      {/* Audio Waveform Visualization */}
+      <View className="w-full px-4 mb-6">
+        <AudioWaveform
+          isRecording={isRecording}
+          barCount={50}
+          barWidth={3}
+          barSpacing={2}
+          maxBarHeight={60}
+          minBarHeight={4}
+          color={colors.accent}
         />
-      </Animated.View>
+      </View>
 
       {/* Record Button */}
       <Pressable
@@ -66,7 +46,9 @@ const VoiceRecordingControls: React.FC<VoiceRecordingControlsProps> = ({
 
       {/* Show recorded message indicator */}
       {recordingUri && !isRecording && (
-        <Text className="mt-4 text-accent">✓ Recording saved</Text>
+        <Text className="mt-4 text-accent font-semibold">
+          ✓ Recording saved
+        </Text>
       )}
     </View>
   );

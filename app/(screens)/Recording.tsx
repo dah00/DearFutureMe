@@ -34,7 +34,6 @@ const Recording = () => {
     recordingUri,
     recording,
     recorderState,
-    pulseAnim,
     startRecording,
     stopRecording,
     resetRecording,
@@ -197,7 +196,6 @@ const Recording = () => {
             <VoiceRecordingControls
               isRecording={recorderState.isRecording}
               recordingUri={recordingUri}
-              pulseAnim={pulseAnim}
               onStartRecording={handleStartRecording}
               onStopRecording={handleStopRecording}
             />
