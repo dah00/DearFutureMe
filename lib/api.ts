@@ -3,7 +3,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 const TOKEN_KEY = "dfm_token";
 
 const API_BASE_URL = __DEV__
-  ? "http://10.0.0.14:8000"
+  ? "http://10.1.10.81:8000"
   : "https://your-deployed-api.com";
 
 export interface AuthResponse {

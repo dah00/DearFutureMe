@@ -43,10 +43,10 @@ const Button = ({
     <Pressable
       onPress={isDisabled ? undefined : onPress}
       disabled={isDisabled}
-      className={`${getSizeStyles()} bg-accent rounded-xl`}
+      className={`${getSizeStyles()} bg-primary rounded-xl`}
       style={{ opacity: isDisabled ? 0.5 : 1 }}
     >
-      <Text className="text-white ">{text}</Text>
+      <Text className="text-white text-xl">{text}</Text>
     </Pressable>
   );
 };
