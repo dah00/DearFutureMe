@@ -1,8 +1,9 @@
+import EntryFloatingActionButton from "@/components/components/EntryFloatingActionButton";
 import { colors } from "@/constants/colors";
 import { icons } from "@/constants/icons";
 import { Ionicons } from "@expo/vector-icons";
 import { Tabs, router } from "expo-router";
-import React from "react";
+import React, { useState } from "react";
 import { Image, Pressable, Text, View } from "react-native";
 
 const TabIcon = ({ focused, icon, title }: any) => {
@@ -39,6 +40,7 @@ const TabIcon = ({ focused, icon, title }: any) => {
 };
 
 const _Layout = () => {
+  const [showEntryOption, setShowEntryOption] = useState<boolean>(false);
   return (
     <View className="flex-1">
       <Tabs
@@ -102,9 +104,29 @@ const _Layout = () => {
           }}
         />
       </Tabs>
+
+      {/* Grayed-out overlay */}
+      {showEntryOption && (
+        <Pressable
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            zIndex: 5,
+          }}
+          onPress={() => setShowEntryOption(false)}
+        />
+      )}
+
+      {/* Entry buttons */}
+      {showEntryOption && <EntryFloatingActionButton />}
+
       {/* Floating Action Button - Integrated Design */}
       <Pressable
-        onPress={() => router.push("/recording")}
+        onPress={() => setShowEntryOption(!showEntryOption)}
         className="absolute w-[60px] h-[60px] rounded-full bg-primary items-center justify-center z-10 border-2 border-white/30"
         style={{
           left: "50%",

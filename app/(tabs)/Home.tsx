@@ -1,3 +1,4 @@
+import EntryFloatingActionButton from "@/components/components/EntryFloatingActionButton";
 import MessageList from "@/components/Home/MessageList";
 import Streak from "@/components/Home/Streak";
 import { colors } from "@/constants/colors";
@@ -19,6 +20,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 const Home = () => {
   const [backendMessage, setBackendMessage] = useState<string>("");
+  const [showEntryOption, setShowEntryOption] = useState<boolean>(false);
   const {
     messages,
     isLoading,
@@ -70,7 +72,7 @@ const Home = () => {
                 shadowRadius: 4.65,
                 elevation: 8,
               }}
-              onPress={() => {}}
+              onPress={() => setShowEntryOption(!showEntryOption)}
             >
               <Text className="color-backgroundSecondary text-2xl">
                 What made you 1% better today?
@@ -78,11 +80,32 @@ const Home = () => {
             </Pressable>
           </View>
 
+          {/* Grayed-out overlay */}
+          {showEntryOption && (
+            <Pressable
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: "rgba(0, 0, 0, 0.5)",
+                zIndex: 5,
+              }}
+              onPress={() => setShowEntryOption(false)}
+            />
+          )}
+
+          {/* Entry buttons */}
+          {showEntryOption && <EntryFloatingActionButton />}
+
           {/** Streak indicator */}
-          <View className="mt-8 px-6">
+          <View className="mt-8 px-6 gap-2">
             <Text className="font-semibold text-2xl">Past 7 days Streak</Text>
-            <Text className="color-button">5 out of 7 streak in the past 7 days</Text>
-            <Streak/>
+            <Text className="color-button">
+              5 out of 7 streak in the past 7 days
+            </Text>
+            <Streak />
           </View>
 
           {/* * Upcoming Messages */}
