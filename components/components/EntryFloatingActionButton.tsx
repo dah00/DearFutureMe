@@ -1,5 +1,6 @@
 import { colors } from "@/constants/colors";
 import { icons } from "@/constants/icons";
+import { router } from "expo-router";
 import React from "react";
 import { Image, Pressable, Text, View } from "react-native";
 
@@ -14,7 +15,10 @@ const EntryFloatingActionButton = () => {
         borderColor: colors.border,
       }}
     >
-      <Pressable className="items-center gap-1">
+      <Pressable
+        className="items-center gap-1"
+        onPress={() => router.push("/WriteEntry")}
+      >
         <View className="bg-success rounded-full w-12 h-12 items-center justify-center">
           <Image source={icons.comment} className="w-8 h-8" />
         </View>

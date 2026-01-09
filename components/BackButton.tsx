@@ -5,9 +5,10 @@ import { Pressable, View } from "react-native";
 
 interface BackButtonProps {
   onPress?: () => void;
+  useAbsolute?: boolean; 
 }
 
-const BackButton = ({ onPress }: BackButtonProps) => {
+const BackButton = ({ onPress, useAbsolute = true }: BackButtonProps) => {
   const handlePress = () => {
     if (onPress) {
       onPress();
@@ -17,7 +18,10 @@ const BackButton = ({ onPress }: BackButtonProps) => {
   };
 
   return (
-    <Pressable onPress={handlePress} className="absolute top-12 left-6 z-10">
+    <Pressable
+      onPress={handlePress}
+      className={useAbsolute ? "absolute top-20 left-6 z-10" : ""}
+    >
       <View className="bg-gray-300 rounded-full p-2">
         <Ionicons name="arrow-back" size={24} color="#111827" />
       </View>
