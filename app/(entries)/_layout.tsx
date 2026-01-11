@@ -1,5 +1,4 @@
 import BackButton from "@/components/BackButton";
-import TextField from "@/components/TextField";
 import { Slot } from "expo-router";
 import React, { useState } from "react";
 import {
@@ -18,19 +17,20 @@ const EntriesLayout = () => {
   const [focusArea, setFocusArea] = useState<string>("");
 
   return (
-    <SafeAreaView className="flex-1 bg-secondary">
+    <SafeAreaView className="flex-1 bg-white">
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
+          keyboardVerticalOffset={12}
           className="flex-1"
         >
           {/* Back and Save Buttons */}
           <View
             style={{
               position: "absolute",
-              top: 20, 
-              left: 24, 
-              right: 24, 
+              top: 0,
+              left: 24,
+              right: 24,
               zIndex: 10,
               flexDirection: "row",
               justifyContent: "space-between",
@@ -49,31 +49,15 @@ const EntriesLayout = () => {
           </View>
 
           {/* Title Section */}
-          <View className="mt-24 px-6 mb-6 items-center">
+          <View className="mt-16 px-6 mb-6 items-center">
             <Text className="font-instrument text-3xl mb-1">Today's 1%</Text>
             <Text className="text-base text-gray-600">
               Even one small thing is enough
             </Text>
           </View>
 
-          {/* Header Section with Optional Fields */}
-          <View className="px-6 mb-6 gap-4">
-            <TextField
-              placeholder="Title (optional)"
-              value={title}
-              onChangeText={setTitle}
-              autoCapitalize="sentences"
-            />
-            <TextField
-              placeholder="Focus Area (optional)"
-              value={focusArea}
-              onChangeText={setFocusArea}
-              autoCapitalize="sentences"
-            />
-          </View>
-
           {/* Child Route Content (WriteEntry or RecordEntry) */}
-          <View className="flex-1">
+          <View className="flex-1" style={{ paddingBottom: 5 }}>
             <Slot />
           </View>
         </KeyboardAvoidingView>
