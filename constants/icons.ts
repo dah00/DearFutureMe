@@ -3,9 +3,13 @@ import check from "@/assets/icons/check.png";
 import comment from "@/assets/icons/comment.png";
 import records from "@/assets/icons/folder.png";
 import home from "@/assets/icons/home.png";
+import pause from "@/assets/icons/pause-button.png";
+import play from "@/assets/icons/play-button.png";
 import profile from "@/assets/icons/profile.png";
 import user from "@/assets/icons/user.png";
 import voice from "@/assets/icons/voice.png";
+import record from "@/assets/icons/rec-button.png";
+import recording from "@/assets/icons/recording-button.png";
 
 export const icons = {
   home,
@@ -16,4 +20,8 @@ export const icons = {
   comment,
   calendar,
   check,
+  play,
+  pause,
+  record,
+  recording
 };

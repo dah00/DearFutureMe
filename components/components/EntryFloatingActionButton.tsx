@@ -24,7 +24,7 @@ const EntryFloatingActionButton = () => {
         </View>
         <Text>Write</Text>
       </Pressable>
-      <Pressable className="items-center gap-1">
+      <Pressable className="items-center gap-1" onPress={() => router.push("/RecordEntry")}>
         <View className="bg-accent rounded-full w-12 h-12 items-center justify-center">
           <Image source={icons.voice} className="w-8 h-8 rounded-full" />
         </View>

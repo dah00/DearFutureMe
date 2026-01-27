@@ -1,10 +1,54 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const TOKEN_KEY = "dfm_token";
-
 const API_BASE_URL = __DEV__
-  ? "http://10.0.0.14:8000"
+  ? "http://10.1.10.81:8000"
   : "https://your-deployed-api.com";
+
+// Get the API base URL dynamically based on the current network
+// This works with phone hotspots by detecting the correct IP from Expo Constants
+// function getApiBaseUrl(): string {
+//   if (!__DEV__) {
+//     return "https://your-deployed-api.com";
+//   }
+
+//   // Method 1: Try to get from expoConfig hostUri (most reliable)
+//   const hostUri = Constants.expoConfig?.hostUri;
+//   if (hostUri) {
+//     const ip = hostUri.split(":")[0];
+//     return `http://${ip}:8000`;
+//   }
+
+//   // Method 2: Try to get from manifest debuggerHost
+//   const manifest = Constants.manifest2 || Constants.manifest;
+//   const debuggerHost =
+//     manifest?.debuggerHost || manifest?.extra?.expoGo?.debuggerHost;
+//   if (debuggerHost) {
+//     const ip = debuggerHost.split(":")[0];
+//     return `http://${ip}:8000`;
+//   }
+
+//   // Method 3: Try to get from expoConfig extra
+//   const extraDebuggerHost = Constants.expoConfig?.extra?.debuggerHost;
+//   if (extraDebuggerHost) {
+//     const ip = extraDebuggerHost.split(":")[0];
+//     return `http://${ip}:8000`;
+//   }
+
+//   // Last resort: use localhost (won't work with physical device)
+//   // In this case, you may need to manually set the IP
+//   console.warn(
+//     "Could not detect IP address automatically. API calls may fail."
+//   );
+//   return "http://localhost:8000";
+// }
+
+// const API_BASE_URL = getApiBaseUrl();
+
+// // Log the API URL in development for debugging
+// if (__DEV__) {
+//   console.log("API Base URL:", API_BASE_URL);
+// }
 
 export interface AuthResponse {
   access_token: string;

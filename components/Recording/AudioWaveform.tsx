@@ -1,201 +1,82 @@
-import { colors } from "@/constants/colors";
-import React, { useEffect, useRef, useState } from "react";
-import { Animated, View } from "react-native";
+import { useEffect, useState } from "react";
+import { View } from "react-native";
 
-interface AudioWaveformProps {
-  isRecording: boolean;
-  barCount?: number;
-  barWidth?: number;
-  barSpacing?: number;
-  maxBarHeight?: number;
-  minBarHeight?: number;
-  color?: string;
-}
-
-interface WaveBar {
-  id: number;
-  height: Animated.Value;
-  translateX: Animated.Value;
-}
-
-const AudioWaveform: React.FC<AudioWaveformProps> = ({
-  isRecording,
-  barCount = 50,
-  barWidth = 3,
-  barSpacing = 2,
-  maxBarHeight = 60,
-  minBarHeight = 4,
-  color = colors.accent,
-}) => {
-  const [bars, setBars] = useState<WaveBar[]>([]);
-  const [containerWidth, setContainerWidth] = useState(0);
-  const barIdCounter = useRef(0);
-  const animationInterval = useRef<ReturnType<typeof setInterval> | null>(null);
-  const heightUpdateIntervals = useRef<
-    Map<number, ReturnType<typeof setInterval>>
-  >(new Map());
-  const scrollDuration = 3000; // 3 seconds to scroll across screen
-  const barSpacingTotal = barWidth + barSpacing;
+export default function AudioWaveform({
+  recordingInProgress,
+  latestDecibel,
+}: {
+  recordingInProgress: boolean;
+  latestDecibel: React.RefObject<number | null>;
+}) {
+  const [waveformHeights, setWaveformHeights] = useState<number[]>([]);
+  const maxBars = 50;
 
   useEffect(() => {
-    if (!isRecording) {
-      if (animationInterval.current) {
-        clearInterval(animationInterval.current);
-        animationInterval.current = null;
+    if (!recordingInProgress) return;
+    setWaveformHeights([]);
+
+    let waveformBuffer: number[] = [];
+    const interval = setInterval(() => {
+      if (latestDecibel.current != null) {
+        // const normalized = Math.max(0, Math.min(1, (latestDecibel.current + 60) / 60));
+        // // const variation = 0.6 + Math.random() * 0.1; // WhatsApp wiggle
+        // const variation = 1
+        // const height = normalized * 40 * variation;
+
+        const db = latestDecibel.current; // typically -60..0
+        const minDb = -60;
+        const maxDb = 0;
+
+        let normalized = (db - minDb) / (maxDb - minDb); // 0..1
+        normalized = Math.max(0, Math.min(1, normalized));
+
+        // Noise gate: treat very quiet as silence
+        const gate = 0.08; // try 0.05 - 0.15
+        if (normalized < gate) normalized = 0;
+
+        // Optional: make quiet even quieter (gamma curve)
+        const gamma = 1.8; // >1 compresses low values
+        normalized = Math.pow(normalized, gamma);
+
+        // Now compute height (no variation)
+        const maxBarHeight = 80; // px (pick what looks good)
+        const minBarHeight = 1; // px (or 0)
+        const height =
+          minBarHeight + normalized * (maxBarHeight - minBarHeight);
+
+        waveformBuffer.push(height);
+        if (waveformBuffer.length > maxBars) waveformBuffer.shift();
+
+        setWaveformHeights([...waveformBuffer]);
       }
-      heightUpdateIntervals.current.forEach((interval) =>
-        clearInterval(interval)
-      );
-      heightUpdateIntervals.current.clear();
-      setBars([]);
-      return;
-    }
+    }, 600);
 
-    // Don't start creating bars until we have a valid container width
-    if (containerWidth === 0) {
-      return;
-    }
-
-    // Calculate how often to create new bars based on scroll speed
-    // We want bars to be spaced evenly as they scroll
-    const pixelsPerSecond = containerWidth / (scrollDuration / 1000);
-    const barCreationInterval = Math.max(
-      30,
-      (barSpacingTotal / pixelsPerSecond) * 1000
-    ); // Minimum 30ms
-
-    const createNewBar = (): WaveBar => {
-      const id = barIdCounter.current++;
-      // Use scale factor instead of height value (0 = minBarHeight, 1 = maxBarHeight)
-      const minScale = minBarHeight / maxBarHeight;
-      const initialScale = minScale;
-
-      // Start bars at the right edge of the container
-      // They'll scroll from right to left across the screen
-      const startX = containerWidth - barWidth;
-
-      const newBar: WaveBar = {
-        id,
-        height: new Animated.Value(initialScale), // This will be used as scaleY
-        translateX: new Animated.Value(startX),
-      };
-
-      return newBar;
-    };
-
-    const animateBar = (bar: WaveBar) => {
-      // Scroll from right to left, ending off-screen to the left
-      Animated.timing(bar.translateX, {
-        toValue: -barWidth, // Move completely off-screen to the left
-        duration: scrollDuration,
-        useNativeDriver: true,
-      }).start(() => {
-        const interval = heightUpdateIntervals.current.get(bar.id);
-        if (interval) {
-          clearInterval(interval);
-          heightUpdateIntervals.current.delete(bar.id);
-        }
-        setBars((prev) => prev.filter((b) => b.id !== bar.id));
-      });
-
-      // Update height to simulate volume using scaleY
-      const updateHeight = () => {
-        const isSpeaking = Math.random() > 0.3;
-        const volume = isSpeaking
-          ? Math.random() * 0.5 + 0.5
-          : Math.random() * 0.2 + 0.1;
-        // Calculate scale factor (0 to 1) based on volume
-        const minScale = minBarHeight / maxBarHeight;
-        const targetScale = minScale + volume * (1 - minScale);
-
-        Animated.spring(bar.height, {
-          toValue: targetScale,
-          tension: 50,
-          friction: 7,
-          useNativeDriver: true,
-        }).start();
-      };
-
-      const heightInterval = setInterval(
-        updateHeight,
-        100 + Math.random() * 100
-      );
-      heightUpdateIntervals.current.set(bar.id, heightInterval);
-      setTimeout(updateHeight, 50);
-    };
-
-    animationInterval.current = setInterval(() => {
-      const newBar = createNewBar();
-      setBars((prev) => {
-        const maxVisibleBars = Math.ceil(containerWidth / barSpacingTotal) + 5;
-        const updated = [...prev, newBar];
-        return updated.slice(-maxVisibleBars);
-      });
-      animateBar(newBar);
-    }, barCreationInterval);
-
-    return () => {
-      if (animationInterval.current) {
-        clearInterval(animationInterval.current);
-      }
-      heightUpdateIntervals.current.forEach((interval) =>
-        clearInterval(interval)
-      );
-      heightUpdateIntervals.current.clear();
-    };
-  }, [
-    isRecording,
-    barWidth,
-    barSpacing,
-    maxBarHeight,
-    minBarHeight,
-    scrollDuration,
-    barSpacingTotal,
-    containerWidth, // Re-run effect when container width changes
-  ]);
+    return () => clearInterval(interval);
+  }, [recordingInProgress]);
 
   return (
     <View
       style={{
+        height: 60,
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 2,
         width: "100%",
-        height: maxBarHeight,
-        overflow: "hidden",
-      }}
-      onLayout={(event) => {
-        const width = event.nativeEvent.layout.width;
-        if (width > 0 && width !== containerWidth) {
-          setContainerWidth(width);
-        }
+        marginBottom: 20,
       }}
     >
-      <View
-        style={{
-          height: maxBarHeight,
-          width: "100%",
-          position: "relative",
-        }}
-      >
-        {bars.map((bar) => (
-          <Animated.View
-            key={bar.id}
-            style={{
-              width: barWidth,
-              height: maxBarHeight, // Fixed height, use scaleY for animation
-              backgroundColor: color,
-              borderRadius: barWidth / 2,
-              position: "absolute",
-              bottom: 0,
-              left: 0, // Use left: 0 as base, translateX will position it
-              transform: [
-                { translateX: bar.translateX },
-                { scaleY: bar.height }, // Use scaleY for height animation
-              ],
-            }}
-          />
-        ))}
-      </View>
+      {waveformHeights.map((height, index) => (
+        <View
+          key={index}
+          style={{
+            width: 4,
+            height: height * 2,
+            backgroundColor: "#007AFF",
+            borderRadius: 2,
+          }}
+        />
+      ))}
     </View>
   );
-};
-
-export default AudioWaveform;
+}

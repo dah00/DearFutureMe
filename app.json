@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "dearFutureMe",
-    "slug": "dearFutureMe",
+    "name": "onePercent",
+    "slug": "onePercent",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "dearFutureMe",
+    "scheme": "onePercent",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -28,7 +28,7 @@
       [
         "expo-audio",
         {
-          "microphonePermission": "Allow Dear Future Me to access your microphone."
+          "microphonePermission": "Allow OnePercent App to access your microphone."
         }
       ],
       [

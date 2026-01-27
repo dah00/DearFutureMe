@@ -28,12 +28,15 @@ const WriteEntry = () => {
         initialHeight={300}
         editorStyle={{
           color: colors.textPrimary,
-          contentCSSText: "font-size: 18px; line-height: 24px; padding: 12px;",
+          contentCSSText: "font-size: 16px; line-height: 24px; padding: 12px;",
         }}
         containerStyle={styles.editorContainer}
       />
 
-      {/* TODO: Fix the button color and backgroundColor */}
+      {/* TODO: 
+            - Fix the button color and backgroundColor
+            - keep the Text editor tools above the keyboard when text input goes below the keyboard
+     */}
       <RichToolbar
         editor={richText}
         actions={[
