@@ -4,8 +4,8 @@ import Streak from "@/components/Home/Streak";
 import { colors } from "@/constants/colors";
 import { icons } from "@/constants/icons";
 import { useMessages } from "@/lib/hooks/useMessages";
-import { router } from "expo-router";
-import React, { useState } from "react";
+import { router, useFocusEffect } from "expo-router";
+import React, { useCallback, useState } from "react";
 import {
   Image,
   Keyboard,
@@ -30,6 +30,13 @@ const Home = () => {
     upcomingMessages,
     isLoadingUpcoming,
   } = useMessages();
+
+  // Close entry options when returning to Home (e.g. from WriteEntry/RecordEntry)
+  useFocusEffect(
+    useCallback(() => {
+      setShowEntryOption(false);
+    }, [])
+  );
 
   return (
     <SafeAreaView className="flex-1 bg-secondary " edges={[]}>
