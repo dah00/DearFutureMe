@@ -1,9 +1,13 @@
 import EntryFloatingActionButton from "@/components/components/EntryFloatingActionButton";
 import { colors } from "@/constants/colors";
 import { icons } from "@/constants/icons";
+import {
+  EntryOverlayProvider,
+  useEntryOverlay,
+} from "@/lib/contexts/EntryOverlayContext";
 import { Ionicons } from "@expo/vector-icons";
-import { Tabs, router } from "expo-router";
-import React, { useState } from "react";
+import { Tabs, useFocusEffect } from "expo-router";
+import React, { useCallback } from "react";
 import { Image, Pressable, Text, View } from "react-native";
 
 const TabIcon = ({ focused, icon, title }: any) => {
@@ -39,8 +43,17 @@ const TabIcon = ({ focused, icon, title }: any) => {
   );
 };
 
-const _Layout = () => {
-  const [showEntryOption, setShowEntryOption] = useState<boolean>(false);
+/** Renders tabs + overlay + FAB; must be inside EntryOverlayProvider to use focus effect */
+const TabsLayoutContent = () => {
+  const { showEntryOption, setShowEntryOption } = useEntryOverlay();
+
+  // When we return to tabs (e.g. from WriteEntry/RecordEntry), close the overlay
+  useFocusEffect(
+    useCallback(() => {
+      setShowEntryOption(false);
+    }, [setShowEntryOption]),
+  );
+
   return (
     <View className="flex-1">
       <Tabs
@@ -122,7 +135,11 @@ const _Layout = () => {
       )}
 
       {/* Entry buttons */}
-      {showEntryOption && <EntryFloatingActionButton />}
+      {showEntryOption && (
+        <EntryFloatingActionButton
+          onNavigateToEntry={() => setShowEntryOption(false)}
+        />
+      )}
 
       {/* Floating Action Button - Integrated Design */}
       <Pressable
@@ -140,5 +157,11 @@ const _Layout = () => {
     </View>
   );
 };
+
+const _Layout = () => (
+  <EntryOverlayProvider>
+    <TabsLayoutContent />
+  </EntryOverlayProvider>
+);
 
 export default _Layout;

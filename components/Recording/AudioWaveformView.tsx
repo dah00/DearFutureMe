@@ -23,7 +23,7 @@ export default function AudioWaveformView({
           key={index}
           style={{
             width: 4,
-            height: height * 2,
+            height: height,
             backgroundColor: "#007AFF",
             borderRadius: 2,
           }}

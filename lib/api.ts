@@ -2,7 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const TOKEN_KEY = "dfm_token";
 const API_BASE_URL = __DEV__
-  ? "http://10.1.10.81:8000"
+  ? "http://10.0.0.237:8000"
   : "https://your-deployed-api.com";
 
 // Get the API base URL dynamically based on the current network
@@ -103,7 +103,7 @@ export async function registerUser(payload: {
       method: "POST",
       body: JSON.stringify(payload),
     },
-    false
+    false,
   );
 }
 
@@ -124,7 +124,7 @@ export async function loginUser(payload: {
       },
       body: body.toString(),
     },
-    false
+    false,
   );
 }
 
@@ -162,7 +162,7 @@ const REQUEST_TIMEOUT = 10000; // 10 seconds
 async function apiRequest<T>(
   endpoint: string,
   options: RequestInit = {},
-  requiresAuth = true
+  requiresAuth = true,
 ): Promise<ApiResponse<T>> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
@@ -242,7 +242,7 @@ export async function getMessages(): Promise<ApiResponse<MessageResponse[]>> {
 
 // Create message
 export async function createMessage(
-  payload: MessagePayload
+  payload: MessagePayload,
 ): Promise<ApiResponse<MessageResponse>> {
   return apiRequest<MessageResponse>("/api/messages", {
     method: "POST",
@@ -253,7 +253,7 @@ export async function createMessage(
 // Update message
 export async function updateMessage(
   id: number,
-  payload: Partial<MessagePayload>
+  payload: Partial<MessagePayload>,
 ): Promise<ApiResponse<MessageResponse>> {
   return apiRequest<MessageResponse>(`/api/messages/${id}`, {
     method: "PUT",
@@ -272,7 +272,7 @@ export async function deleteMessage(id: number): Promise<ApiResponse<void>> {
 export async function uploadVoiceMessage(
   file: File | Blob,
   title: string,
-  scheduled_date?: string
+  scheduled_date?: string,
 ): Promise<ApiResponse<MessageResponse>> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT * 3); // Longer timeout for file uploads (30s)
@@ -358,7 +358,7 @@ export async function getMessageStats(): Promise<
 
 export async function updateScheduleDate(
   message_id: number,
-  schedule_data: ScheduleUpdate
+  schedule_data: ScheduleUpdate,
 ): Promise<ApiResponse<MessageResponse>> {
   return apiRequest<MessageResponse>(`/api/messages/${message_id}/schedule`, {
     method: "PATCH",

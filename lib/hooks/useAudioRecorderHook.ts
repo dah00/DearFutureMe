@@ -39,7 +39,6 @@ export default function useAudioRecorderHook() {
   // Build a scrolling waveform based on metering (dB)
   useEffect(() => {
     if (!recorderState.isRecording) {
-      resetWaveform();
       return;
     }
 
@@ -76,7 +75,7 @@ export default function useAudioRecorderHook() {
 
       // Create a new array to trigger render
       setWaveformHeights([...buf]);
-    }, 120);
+    }, 60);
 
     return () => clearInterval(interval);
   }, [recorderState.isRecording]);

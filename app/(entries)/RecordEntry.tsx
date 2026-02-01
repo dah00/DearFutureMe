@@ -60,16 +60,16 @@ const RecordEntry = () => {
   return (
     <View>
       {/* Replace the placeholder View with AudioWaveform */}
-      <View className="bg-blue-600 h-64 justify-center items-center">
+      <View className="h-64 justify-center items-center">
         <AudioWaveformView waveformHeights={waveformHeights} />
         {currentDecibel != null && <Text style={{ marginBottom: 10 }}>{currentDecibel.toFixed(1)} dB</Text>}
       </View>
 
       <View className="flex-row justify-around items-center">
-        <Pressable onPress={handleReset} disabled={recordTimer === 0}>
+        <Pressable onPress={handleReset} disabled={recordTimer <= 0 || recordingInProgress}>
           <Text
-            className={`text-xl ${
-              recordTimer === 0 ? "text-gray-400" : "text-blueGray"
+            className={`text-2xl ${
+              (recordTimer <= 0 || recordingInProgress) ? "text-button" : "text-textPrimary"
             }`}
           >
             Reset
@@ -77,9 +77,9 @@ const RecordEntry = () => {
         </Pressable>
         <Pressable onPress={startOrStopRecording}>
           {recordingInProgress ? (
-            <Image source={icons.recording} className="w-12 h-12" />
+            <Image source={icons.recording} className="w-14 h-14" />
           ) : (
-            <Image source={icons.record} className="w-12 h-12" />
+            <Image source={icons.record} className="w-14 h-14" />
           )}
         </Pressable>
         <Text className="text-2xl">{formatTime(recordTimer)}</Text>

@@ -3,9 +3,10 @@ import MessageList from "@/components/Home/MessageList";
 import Streak from "@/components/Home/Streak";
 import { colors } from "@/constants/colors";
 import { icons } from "@/constants/icons";
+import { useEntryOverlay } from "@/lib/contexts/EntryOverlayContext";
 import { useMessages } from "@/lib/hooks/useMessages";
-import { router, useFocusEffect } from "expo-router";
-import React, { useCallback, useState } from "react";
+import { router } from "expo-router";
+import React, { useState } from "react";
 import {
   Image,
   Keyboard,
@@ -20,7 +21,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 const Home = () => {
   const [backendMessage, setBackendMessage] = useState<string>("");
-  const [showEntryOption, setShowEntryOption] = useState<boolean>(false);
+  const { showEntryOption, setShowEntryOption } = useEntryOverlay();
   const {
     messages,
     isLoading,
@@ -30,13 +31,6 @@ const Home = () => {
     upcomingMessages,
     isLoadingUpcoming,
   } = useMessages();
-
-  // Close entry options when returning to Home (e.g. from WriteEntry/RecordEntry)
-  useFocusEffect(
-    useCallback(() => {
-      setShowEntryOption(false);
-    }, [])
-  );
 
   return (
     <SafeAreaView className="flex-1 bg-secondary " edges={[]}>
@@ -104,7 +98,11 @@ const Home = () => {
           )}
 
           {/* Entry buttons */}
-          {showEntryOption && <EntryFloatingActionButton />}
+          {showEntryOption && (
+            <EntryFloatingActionButton
+              onNavigateToEntry={() => setShowEntryOption(false)}
+            />
+          )}
 
           {/** Streak indicator */}
           <View className="mt-8 px-6 gap-2">
@@ -116,7 +114,7 @@ const Home = () => {
           </View>
 
           {/* * Upcoming Messages */}
-          <View className="mt-6 mb-10 px-6">
+          {/* <View className="mt-6 mb-10 px-6">
             <View className="flex-row justify-between items-center">
               <Text className="text-2xl">Upcoming Messages</Text>
               <Pressable onPress={reload}>
@@ -139,7 +137,7 @@ const Home = () => {
                 <MessageList messages={upcomingMessages} />
               )}
             </View>
-          </View>
+          </View> */}
         </KeyboardAvoidingView>
       </TouchableWithoutFeedback>
     </SafeAreaView>
