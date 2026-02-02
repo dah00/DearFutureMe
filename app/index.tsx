@@ -65,11 +65,11 @@ export default function Index() {
       />
       {/** Header */}
       <Text className="font-instrument text-4xl text-accent">
-        Dear Future Me
+        OnePercent
       </Text>
       <Text className=" text-lg">
-        Record your thoughts, dreams, and ambitions. We'll send them back to you
-        at the perfect moment to inspire and remind you of what matters to you.
+        Capture your 1% improvement every day. A short reflection or voice
+        note—fast, simple, meaningful.
       </Text>
       <Image
         source={require("@/assets/images/welcome_project_launch.gif")}

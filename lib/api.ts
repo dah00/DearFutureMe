@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const TOKEN_KEY = "dfm_token";
+const TOKEN_KEY = "onepercent_token";
 const API_BASE_URL = __DEV__
   ? "http://10.0.0.237:8000"
   : "https://your-deployed-api.com";

@@ -25,7 +25,7 @@ const MessageList = ({ messages }: MessageListProps) => {
   if (messages.length === 0) {
     return (
       <View className="p-4">
-        <Text>No upcoming messages yet</Text>
+        <Text>No entries yet</Text>
       </View>
     );
   }

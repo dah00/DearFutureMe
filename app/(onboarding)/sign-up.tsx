@@ -33,49 +33,41 @@ const SignUp = () => {
   const [showError, setShowError] = useState<boolean>(false);
 
   const handleSignUp = async () => {
-    if (!email || !password) {
+    const trimmedFullName = fullName.trim();
+    const trimmedEmail = email.trim();
+    const trimmedPassword = password.trim();
+
+    // Validate required fields
+    if (!trimmedFullName || !trimmedEmail || !trimmedPassword) {
       setShowError(true);
       Alert.alert("Error", "Please fill in all fields");
-      // Trim whitespace and validate
-      const trimmedFullName = fullName.trim();
-      const trimmedEmail = email.trim();
-      const trimmedPassword = password.trim();
+      return;
+    }
 
-      if (!trimmedFullName || !trimmedEmail || !trimmedPassword) {
-        setShowError(true);
-        return;
-      } else if (trimmedPassword.length < 8) {
-        setShowError(true);
-        Alert.alert("Error", "Password must be at least 8 characters");
-        return;
-      }
+    if (trimmedPassword.length < 8) {
+      setShowError(true);
+      Alert.alert("Error", "Password must be at least 8 characters");
+      return;
+    }
 
-      if (!isChecked) {
-        Alert.alert("Error", "Please agree to the terms and conditions");
-        return;
-      }
+    if (!isChecked) {
+      Alert.alert("Error", "Please agree to the terms and conditions");
+      return;
+    }
 
-      if (password.length < 8) {
-        Alert.alert("Error", "Password must be at least 8 characters");
-        return;
-      }
+    setShowError(false);
+    setIsLoading(true);
 
-      setShowError(false);
-      setIsLoading(true);
-
-      try {
-        await register(trimmedEmail, trimmedPassword);
-
-        // Navigate immediately - success alert is optional
-        router.replace("/");
-      } catch (error) {
-        Alert.alert(
-          "Sign Up Failed",
-          error instanceof Error ? error.message : "Something went wrong"
-        );
-      } finally {
-        setIsLoading(false);
-      }
+    try {
+      await register(trimmedEmail, trimmedPassword);
+      router.replace("/(tabs)/Home");
+    } catch (error) {
+      Alert.alert(
+        "Sign Up Failed",
+        error instanceof Error ? error.message : "Something went wrong",
+      );
+    } finally {
+      setIsLoading(false);
     }
   };
   return (

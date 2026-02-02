@@ -8,7 +8,7 @@ import os
 from pathlib import Path
 from fastapi.staticfiles import StaticFiles
 from typing import List, Optional
-from datetime import timedelta, datetime
+from datetime import timedelta, datetime, timezone
 
 from database import Base, engine, get_db
 from models import Message, User
@@ -31,7 +31,7 @@ Base.metadata.create_all(bind=engine)
 # OAuth2 scheme for token extraction
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/login")
 
-app = FastAPI(title="DearFutureMe API", version="1.0.0")
+app = FastAPI(title="OnePercent", version="1.0.0")
 
 # CORS middleware - allow requests from mobile app
 app.add_middleware(
@@ -50,7 +50,7 @@ async def root():
     Root endpoint - returns API information
     This is the homepage of your API
     """
-    return {"message": "DearFutureMe API is running", "version": "1.0.0"}
+    return {"message": "OnePercent API is running", "version": "1.0.0"}
 
 
 # Get current user from token
@@ -105,7 +105,20 @@ def create_message(
     current_user: User = Depends(get_current_user)
 ):
     try:
-        db_message = Message(**message.model_dump(), user_id=current_user.id)
+
+        data = message.model_dump() 
+        if not data.get("title"):
+            title = datetime.now(timezone.utc).strftime("%B %d, %Y")
+        else:
+            title = data["title"]
+        focus_area = data.get("focus_area") or None
+        db_message = Message(
+            user_id=current_user.id, 
+            title=title, content=data["content"], 
+            message_type=data["message_type"], 
+            scheduled_date=data["scheduled_date"], 
+            focus_area=focus_area
+            )
         db.add(db_message)
         db.commit()
         db.refresh(db_message)
@@ -147,7 +160,6 @@ def get_upcoming_messages(
     Only returns messages where scheduled_date is in the future.
     """
     try:
-        from datetime import datetime, timezone
         
         now = datetime.now(timezone.utc)
         messages = db.query(Message).filter(
@@ -174,7 +186,7 @@ def get_message_stats(
     """
     try:
         from sqlalchemy import func
-        from datetime import datetime, timezone
+
         
         now = datetime.now(timezone.utc)
         
@@ -320,7 +332,8 @@ def delete_message(message_id: int, db: Session = Depends(get_db), current_user:
 @app.post("/api/messages/upload-voice", response_model=MessageResponse)
 async def upload_voice_message(
     file: UploadFile = File(...),  # The audio file
-    title: str = Form(...),  # Title from form data
+    title: Optional[str] = Form(None),  # Title from form data
+    focus_area: Optional[str] = Form(None),
     scheduled_date: Optional[datetime] = Form(None),  # Optional date
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
@@ -366,10 +379,18 @@ async def upload_voice_message(
                     detail="File too large. Maximum size is 10MB"
                 )
             buffer.write(content) 
+
         
         # Step 4: Create message in database
+        if not title:
+            title = datetime.now(timezone.utc).strftime("%B %d, %Y")
+        
+        if not focus_area:
+            focus_area = None
+
         db_message = Message(
             title=title,
+            focus_area = focus_area,
             message_type=MessageType.VOICE,
             voice_file_path=str(file_path),  
             scheduled_date=scheduled_date,
@@ -431,7 +452,7 @@ async def get_voice_file(
         return FileResponse(
             path=file_path,
             media_type="audio/mpeg",  
-            filename=message.title + ".mp3"
+            filename=(message.title or str(message.id)) + ".mp3"
         )
         
     except HTTPException:
@@ -564,5 +585,5 @@ async def http_exception_handler(request: Request, exc: HTTPException):
 
 
 if __name__ == "__main__":
-    import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
+    import uvicorn

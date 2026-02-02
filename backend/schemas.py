@@ -11,10 +11,11 @@ class MessageType(str, Enum):
 
 
 class MessageBase(BaseModel):
-    title: str = Field(..., min_length=1, max_length=255)
+    title: Optional[str] = Field(default=None, max_length=255)
     content: Optional[str]
     message_type: MessageType = MessageType.TEXT
     scheduled_date: Optional[datetime]
+    focus_area: Optional[str] = Field(default=None, max_length=255)
 
 
 class MessageCreate(MessageBase):
@@ -26,6 +27,7 @@ class MessageUpdate(BaseModel):
     content: Optional[str] = None
     message_type: Optional[MessageType] = None
     scheduled_date: Optional[datetime] = None
+    focus_area: Optional[str] = None
 
 class ScheduleUpdate(BaseModel):
     scheduled_date: datetime

@@ -5,7 +5,7 @@ from contextlib import contextmanager
 import os
 
 # For dev: SQLite file inside backend folder
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./dearfutureme.db")
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./onepercent.db")
 
 engine = create_engine(
     DATABASE_URL,
