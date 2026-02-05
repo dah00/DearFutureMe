@@ -1,4 +1,5 @@
 import BackButton from "@/components/BackButton";
+import SaveModal from "@/components/components/SaveModal";
 import { useMessages } from "@/lib/hooks/useMessages";
 import { Slot } from "expo-router";
 import React, { useState } from "react";
@@ -17,6 +18,7 @@ const EntriesLayout = () => {
   const [title, setTitle] = useState<string>("");
   const [focusArea, setFocusArea] = useState<string>("");
   const { createMessage } = useMessages()
+  const [showSaveModal, setShowSaveModal] = useState<boolean>(false);
 
   return (
     <SafeAreaView className="flex-1 bg-white">
@@ -43,7 +45,7 @@ const EntriesLayout = () => {
             <Pressable
               className="px-6 py-3 rounded-full bg-accent items-center justify-center"
               onPress={() => {
-                console.log("Save pressed");
+                setShowSaveModal(true)
               }}
             >
               <Text className="text-white font-bold text-lg">Save</Text>
@@ -57,6 +59,9 @@ const EntriesLayout = () => {
               Even one small thing is enough
             </Text>
           </View>
+
+          
+          <SaveModal showSaveModal={showSaveModal} setShowSaveModal={setShowSaveModal} />
 
           {/* Child Route Content (WriteEntry or RecordEntry) */}
           <View className="flex-1" style={{ paddingBottom: 5 }}>

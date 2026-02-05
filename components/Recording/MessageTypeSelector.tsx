@@ -22,7 +22,7 @@ const MessageTypeSelector: React.FC<MessageTypeSelectorProps> = ({
         className="w-24 h-24 rounded-full items-center justify-center self-center"
         style={{
           borderColor: isWriteSelected ? colors.accent : colors.textPrimary,
-          backgroundColor: isWriteSelected ? colors.accent : colors.secondary,
+          backgroundColor: isWriteSelected ? colors.accent : colors.background,
           borderWidth: 1,
         }}
         onPress={onWriteSelect}
@@ -48,7 +48,7 @@ const MessageTypeSelector: React.FC<MessageTypeSelectorProps> = ({
         className="w-24 h-24 rounded-full items-center justify-center self-center"
         style={{
           borderColor: isRecordSelected ? colors.accent : colors.textPrimary,
-          backgroundColor: isRecordSelected ? colors.accent : colors.secondary,
+          backgroundColor: isRecordSelected ? colors.accent : colors.background,
           borderWidth: 1,
         }}
         onPress={onRecordSelect}
