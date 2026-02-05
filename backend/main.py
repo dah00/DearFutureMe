@@ -272,43 +272,6 @@ def update_message(message_id: int, update_data: MessageUpdate, db: Session = De
         )
 
 
-@app.patch("/api/messages/{message_id}/schedule", response_model=MessageResponse)
-def update_scheduled_date(
-    message_id: int,
-    schedule_data: ScheduleUpdate,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    """
-    Update the scheduled date of a message.
-    """
-    try:
-        message = db.query(Message).filter(
-            Message.id == message_id,
-            Message.user_id == current_user.id
-        ).first()
-        
-        if not message:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Message not found"
-            )
-        
-        message.scheduled_date = schedule_data.scheduled_date
-        db.commit()
-        db.refresh(message)
-        
-        return message
-    except HTTPException:
-        raise
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to update scheduled date: {str(e)}"
-        )
-
-
 @app.delete("/api/messages/{message_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_message(message_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     try:

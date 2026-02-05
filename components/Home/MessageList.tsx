@@ -46,7 +46,7 @@ const MessageList = ({ messages }: MessageListProps) => {
                 />
               </View>
               <View className="ml-3">
-                <Text className="font-semibold">{item.title}</Text>
+                <Text className="font-semibold">{item.title ?? 'No title'}</Text>
                 {item.content ? (
                   <Text className="text-xs text-gray-400">{item.content}</Text>
                 ) : null}

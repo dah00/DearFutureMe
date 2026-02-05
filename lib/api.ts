@@ -2,7 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const TOKEN_KEY = "onepercent_token";
 const API_BASE_URL = __DEV__
-  ? "http://10.0.0.237:8000"
+  ? "http://10.1.10.81:8000"
   : "https://your-deployed-api.com";
 
 // Get the API base URL dynamically based on the current network
@@ -61,16 +61,29 @@ export interface ApiResponse<T> {
   error?: string;
 }
 
+// #################### MESSAGE INTERFACES #######################################
+
 export interface MessagePayload {
-  title: string;
+  title?: string | null;
   content?: string;
   message_type?: "text" | "voice";
+  focus_area?: string | null;
   scheduled_date?: string; // ISO string
+}
+
+export interface MessageResponse extends MessagePayload {
+  id: number;
+  user_id: number;
+  created_at: string;
+  updated_at?: string | null;
+  voice_file_path?: string | null;
 }
 
 export interface ScheduleUpdate {
   scheduled_date: string; // ISO string format
 }
+
+// #################### USER INTERFACES #######################################
 
 export interface UserResponse {
   id: number;
@@ -86,12 +99,10 @@ export interface MessageStatsResponse {
   voice_messages: number;
 }
 
-export interface MessageResponse extends MessagePayload {
-  id: number;
-  user_id: number;
-  created_at: string;
-  updated_at?: string | null;
-}
+// ###############################################################################
+// ################################## APIs #######################################
+
+// ################################## USER APIs #####################################
 
 export async function registerUser(payload: {
   email: string;
@@ -235,6 +246,8 @@ async function apiRequest<T>(
   }
 }
 
+// ################################## MESSAGE APIs #####################################
+
 // List messages
 export async function getMessages(): Promise<ApiResponse<MessageResponse[]>> {
   return apiRequest<MessageResponse[]>("/api/messages");
@@ -271,7 +284,8 @@ export async function deleteMessage(id: number): Promise<ApiResponse<void>> {
 // Upload voice message
 export async function uploadVoiceMessage(
   file: File | Blob,
-  title: string,
+  title?: string | null,
+  focus_area?: string | null,
   scheduled_date?: string,
 ): Promise<ApiResponse<MessageResponse>> {
   const controller = new AbortController();
@@ -280,7 +294,12 @@ export async function uploadVoiceMessage(
   try {
     const formData = new FormData();
     formData.append("file", file as any);
-    formData.append("title", title);
+    if (title != null && title !== '') {
+      formData.append("title", title);
+    }
+    if (focus_area) {
+      formData.append("focus_area", focus_area);
+    }
     if (scheduled_date) {
       formData.append("scheduled_date", scheduled_date);
     }
@@ -354,14 +373,4 @@ export async function getMessageStats(): Promise<
   ApiResponse<MessageStatsResponse>
 > {
   return apiRequest<MessageStatsResponse>("/api/messages/stats");
-}
-
-export async function updateScheduleDate(
-  message_id: number,
-  schedule_data: ScheduleUpdate,
-): Promise<ApiResponse<MessageResponse>> {
-  return apiRequest<MessageResponse>(`/api/messages/${message_id}/schedule`, {
-    method: "PATCH",
-    body: JSON.stringify(schedule_data),
-  });
 }

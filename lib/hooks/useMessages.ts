@@ -13,7 +13,6 @@ import {
   getMessageStats,
   getUpcomingMessages,
   updateMessage,
-  updateScheduleDate,
 } from "@/lib/api";
 import { useCallback, useEffect, useState } from "react";
 
@@ -136,27 +135,6 @@ export function useMessages() {
     return { success: false, error: errorMsg };
   };
 
-  const updateScheduleHandler = async (
-    id: number,
-    schedule_data: ScheduleUpdate
-  ) => {
-    const response = await updateScheduleDate(id, schedule_data);
-    if (response.success && response.data) {
-      setMessages((prev) =>
-        prev.map((message) => (message.id === id ? response.data! : message))
-      );
-      setUpcomingMessages((prev) =>
-        prev.map((message) => (message.id === id ? response.data! : message))
-      );
-      return { success: true };
-    }
-    // Ensure error is always a string
-    const errorMsg =
-      typeof response.error === "string"
-        ? response.error
-        : JSON.stringify(response.error) || "Failed to update schedule";
-    return { success: false, error: errorMsg };
-  };
 
   const deleteMessageHandler = async (id: number) => {
     const response = await deleteMessage(id);
@@ -186,7 +164,6 @@ export function useMessages() {
     reload: loadMessages,
     reloadUpcomingMessage: loadUpcomingMessages,
     updateSchedule: updateMessage,
-
     createMessage: createMessageHandler,
     updateMessage: updateMessageHandler,
     deleteMessage: deleteMessageHandler,

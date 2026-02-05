@@ -9,6 +9,7 @@ import {
 
 const WriteEntry = () => {
   const richText = useRef<RichEditor>(null);
+  
 
   useEffect(() => {
     // Focus the editor when component mounts

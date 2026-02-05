@@ -1,4 +1,5 @@
 import BackButton from "@/components/BackButton";
+import { useMessages } from "@/lib/hooks/useMessages";
 import { Slot } from "expo-router";
 import React, { useState } from "react";
 import {
@@ -15,6 +16,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 const EntriesLayout = () => {
   const [title, setTitle] = useState<string>("");
   const [focusArea, setFocusArea] = useState<string>("");
+  const { createMessage } = useMessages()
 
   return (
     <SafeAreaView className="flex-1 bg-white">
