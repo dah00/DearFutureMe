@@ -15,9 +15,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const EntriesLayout = () => {
-  const [title, setTitle] = useState<string>("");
-  const [focusArea, setFocusArea] = useState<string>("");
-  const { createMessage } = useMessages()
+  const { createMessage } = useMessages();
   const [showSaveModal, setShowSaveModal] = useState<boolean>(false);
 
   return (
@@ -45,7 +43,7 @@ const EntriesLayout = () => {
             <Pressable
               className="px-6 py-3 rounded-full bg-accent items-center justify-center"
               onPress={() => {
-                setShowSaveModal(true)
+                setShowSaveModal(true);
               }}
             >
               <Text className="text-white font-bold text-lg">Save</Text>
@@ -60,8 +58,10 @@ const EntriesLayout = () => {
             </Text>
           </View>
 
-          
-          <SaveModal showSaveModal={showSaveModal} setShowSaveModal={setShowSaveModal} />
+          <SaveModal
+            showSaveModal={showSaveModal}
+            setShowSaveModal={setShowSaveModal}
+          />
 
           {/* Child Route Content (WriteEntry or RecordEntry) */}
           <View className="flex-1" style={{ paddingBottom: 5 }}>

@@ -1,9 +1,8 @@
+import AudioWaveformView from "@/components/Recording/AudioWaveformView";
 import { icons } from "@/constants/icons";
+import useAudioRecorderHook from "@/lib/hooks/useAudioRecorderHook";
 import React, { useEffect, useRef, useState } from "react";
 import { Image, Pressable, Text, View } from "react-native";
-import useAudioRecorderHook from "@/lib/hooks/useAudioRecorderHook";
-import AudioWaveformView from "@/components/Recording/AudioWaveformView";
-
 
 const RecordEntry = () => {
   const [recordTimer, setRecordTimer] = useState<number>(0);
@@ -15,9 +14,7 @@ const RecordEntry = () => {
     startOrStopRecording,
     waveformHeights,
     resetWaveform,
-  } =
-    useAudioRecorderHook();
-
+  } = useAudioRecorderHook();
 
   // Manage interval based on isRecording state
   useEffect(() => {
@@ -28,8 +25,8 @@ const RecordEntry = () => {
       }, 1000);
     } else {
       if (intervalRef.current) {
-        clearInterval(intervalRef.current); 
-        intervalRef.current = null; 
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
       }
     }
 
@@ -62,14 +59,23 @@ const RecordEntry = () => {
       {/* Replace the placeholder View with AudioWaveform */}
       <View className="h-64 justify-center items-center">
         <AudioWaveformView waveformHeights={waveformHeights} />
-        {currentDecibel != null && <Text style={{ marginBottom: 10 }}>{currentDecibel.toFixed(1)} dB</Text>}
+        {currentDecibel != null && (
+          <Text style={{ marginBottom: 10 }}>
+            {currentDecibel.toFixed(1)} dB
+          </Text>
+        )}
       </View>
 
       <View className="flex-row justify-around items-center">
-        <Pressable onPress={handleReset} disabled={recordTimer <= 0 || recordingInProgress}>
+        <Pressable
+          onPress={handleReset}
+          disabled={recordTimer <= 0 || recordingInProgress}
+        >
           <Text
             className={`text-2xl ${
-              (recordTimer <= 0 || recordingInProgress) ? "text-button" : "text-textPrimary"
+              recordTimer <= 0 || recordingInProgress
+                ? "text-button"
+                : "text-textPrimary"
             }`}
           >
             Reset

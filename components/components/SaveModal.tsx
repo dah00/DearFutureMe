@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Modal, Pressable, Text, View } from "react-native";
 import Button from "../Button";
 import TextField from "../TextField";
+import { useMessages } from "@/lib/hooks/useMessages";
 
 interface SaveModalProps {
   showSaveModal: boolean;
@@ -9,15 +10,31 @@ interface SaveModalProps {
   // setShowSaveModal: () => void
 }
 
+/**
+ * TODO:
+ * - Maybe add a title to the modal
+ * - Hook the Save button with createMessage (API)
+ */
+
 const SaveModal = ({ showSaveModal, setShowSaveModal }: SaveModalProps) => {
-  const [title, setTitle] = useState<string>();
-  const [focusArea, setFocusArea] = useState<string>();
+  const [title, setTitle] = useState<string>("");
+  const [focusArea, setFocusArea] = useState<string>("");
+  const {createMessage} = useMessages()
+
+  const closeModal = () => setShowSaveModal(false);
+
   return (
-    <Modal visible={showSaveModal} animationType="slide" transparent={true}>
-      <View className="flex-1 justify-center items-center bg-black/50">
-        <View className="bg-white rounded-xl w-[80%] pt-20 pb-8 px-6">
+    <Modal visible={showSaveModal} animationType="slide" transparent>
+      <Pressable
+        className="flex-1 justify-center items-center bg-black/50"
+        onPress={closeModal}
+      >
+        <Pressable
+          className="bg-white rounded-xl w-[80%] pt-20 pb-8 px-6"
+          onPress={() => {}}
+        >
           <View className="absolute top-6 right-8">
-            <Pressable onPress={() => setShowSaveModal(false)}>
+            <Pressable onPress={closeModal} hitSlop={12}>
               <Text className="font-bold text-xl">X</Text>
             </Pressable>
           </View>
@@ -44,12 +61,12 @@ const SaveModal = ({ showSaveModal, setShowSaveModal }: SaveModalProps) => {
           <View className="items-center mt-8">
             <Button
               text="Save"
-              onPress={() => setShowSaveModal(true)}
+              onPress={closeModal}
               size="md"
             />
           </View>
-        </View>
-      </View>
+        </Pressable>
+      </Pressable>
     </Modal>
   );
 };

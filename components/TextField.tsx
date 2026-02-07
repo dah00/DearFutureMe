@@ -1,3 +1,4 @@
+import { colors } from "@/constants/colors";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import { Text, TextInput, TouchableOpacity, View } from "react-native";
@@ -50,12 +51,12 @@ const TextField = ({
           placeholder={placeholder}
           value={currentValue}
           onChangeText={handleChangeText}
-          placeholderTextColor="#9CA3AF"
+          placeholderTextColor={colors.darkGrey}
           keyboardType={keyboardType}
           secureTextEntry={secureTextEntry && !showPassword}
           autoCapitalize={autoCapitalize}
           autoComplete={autoComplete}
-          className="bg-border rounded-lg px-4 py-5 pr-12 text-white"
+          className="bg-lightGrey rounded-lg px-4 py-5 pr-12 text-black"
         />
         {secureTextEntry && (
           <TouchableOpacity

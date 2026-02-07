@@ -19,7 +19,7 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [showErrors, setShowErrors] = useState(false); 
+  const [showErrors, setShowErrors] = useState(false);
 
   const handleLogIn = async () => {
     // Trim whitespace and validate
@@ -42,7 +42,7 @@ const Login = () => {
     } catch (error) {
       Alert.alert(
         "Login Failed",
-        error instanceof Error ? error.message : "Something went wrong"
+        error instanceof Error ? error.message : "Something went wrong",
       );
     } finally {
       setIsLoading(false);
@@ -50,7 +50,7 @@ const Login = () => {
   };
 
   return (
-    <SafeAreaView className="flex-1">
+    <SafeAreaView className="flex-1 ">
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
